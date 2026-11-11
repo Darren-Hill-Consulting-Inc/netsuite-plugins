@@ -48,7 +48,7 @@ export async function collect(s, cfg, { publicClient = false } = {}) {
 }
 
 export function run(opts = {}) {
-  return runCli(opts, async (s) => {
+  return runCli({ usageFile: import.meta.url, ...opts }, async (s) => {
     const cfg = s.load();
     if (!cfg) return 2;
     const publicClient = s.has('--public');
@@ -56,7 +56,7 @@ export function run(opts = {}) {
       if (!s.has(ACK)) {
         return s.refuse(`a public client's refresh rotates the token, and this script won't save the new one, so your app's refresh chain ends [E-36], [E-37]. Run again with --public ${ACK} if that is acceptable`);
       }
-      const ok = await s.confirmChange(cfg, 'refresh the public client refresh token once; the chain ends for your app', ACK);
+      const ok = await s.confirmChange(cfg, 'refresh the public client refresh token once; the chain ends for your app. Before typing the account ID, confirm the token in NS_REFRESH_TOKEN is the newest in the chain: an older one fails and ends the chain too [E-37]', ACK);
       if (!ok) return 2;
     }
     return s.finish('refresh-check', cfg, await collect(s, cfg, { publicClient }));

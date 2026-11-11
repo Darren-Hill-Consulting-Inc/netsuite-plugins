@@ -72,10 +72,10 @@ test('buildDenylist reads a kit layout without printing', () => {
   fs.mkdirSync(path.join(kit, 'results', 'raw'), { recursive: true });
   fs.writeFileSync(path.join(kit, 'secrets', 'clients.json'), JSON.stringify({ m2m: { id: 'CLIENTID_FAKE_123' } }));
   fs.writeFileSync(path.join(kit, 'secrets', 'certs', 'a.kid'), 'CERTID_FAKE_456\n');
-  fs.writeFileSync(path.join(kit, 'results', 'RESULTS.md'), 'Account TSTDRV999 user Jane Q Public, cert `AbCdEfGh…WxYz`, "entity":4242, script `custinteg_abc123`\n');
+  fs.writeFileSync(path.join(kit, 'results', 'RESULTS.md'), 'Account TSTDRV999 user Jane Q Public, cert `AbCdEfGh…WxYz`, "entity":4242, script `custinteg_abc123`\nIntegration records: id 7 "Fake Probe Record - public" (public); id 8 "Fake Probe Record - M2M".\n');
   fs.writeFileSync(path.join(kit, 'results', 'raw', 'x.csv'), 'jane@corp.test,10.1.2.3\n');
   const d = buildDenylist(kit);
-  for (const v of ['CLIENTID_FAKE_123', 'CERTID_FAKE_456', 'TSTDRV999', 'tstdrv999', 'Jane Q Public', 'AbCdEfGh', 'WxYz', '4242', 'custinteg_abc123', 'jane@corp.test', '10.1.2.3']) {
+  for (const v of ['CLIENTID_FAKE_123', 'CERTID_FAKE_456', 'TSTDRV999', 'tstdrv999', 'Jane Q Public', 'AbCdEfGh', 'WxYz', '4242', 'custinteg_abc123', 'Fake Probe Record - public', 'Fake Probe Record - M2M', 'jane@corp.test', '10.1.2.3']) {
     assert.ok(d.includes(v), `missing ${v}`);
   }
 });

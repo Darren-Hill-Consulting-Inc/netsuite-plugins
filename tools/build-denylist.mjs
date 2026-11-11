@@ -30,7 +30,8 @@ export function buildDenylist(kitDir) {
   // Certificate ID prefix/suffix pairs written as `AbCdEfGh…WxYz`.
   for (const m of results.matchAll(/`([A-Za-z0-9_-]{6,10})…([A-Za-z0-9_-]{3,6})`/g)) { add(m[1]); add(m[2].length >= 4 ? m[2] : ''); }
   // Integration record names and script IDs.
-  for (const line of results.split("\n")) {
+  // Full record names, captured from the "Integration record(s)" lines: `id <n> "<name>"`.
+  for (const line of results.split('\n')) {
     if (!/integration records?/i.test(line)) continue;
     for (const m of line.matchAll(/id \d+ "([^"]+)"/g)) add(m[1]);
   }

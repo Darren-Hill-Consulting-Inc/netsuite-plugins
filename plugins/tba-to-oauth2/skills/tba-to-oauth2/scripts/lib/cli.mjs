@@ -124,8 +124,30 @@ export class Session {
   }
 }
 
-/** Run `body(session)` with real process streams unless overridden. Unexpected errors print one redacted line. */
+/** The "Usage:" block from a script's header comment (the Usage line plus its indented continuation lines). */
+export function usageFromHeader(metaUrl) {
+  let lines;
+  try {
+    lines = fs.readFileSync(fileURLToPath(metaUrl), 'utf8').split('\n');
+  } catch {
+    return 'usage: see the header comment of this script';
+  }
+  const start = lines.findIndex((l) => /^\/\/\s*Usage:/.test(l));
+  if (start < 0) return 'usage: see the header comment of this script';
+  const out = [lines[start].replace(/^\/\/\s*/, '')];
+  for (const l of lines.slice(start + 1)) {
+    if (!/^\/\/ {2,}\S/.test(l)) break;
+    out.push(l.replace(/^\/\/ ?/, ''));
+  }
+  return out.join('\n');
+}
+
+/**
+ * Run `body(session)` with real process streams unless overridden. Unexpected errors print one redacted line.
+ * With no arguments, or `--help`/`-h`, prints `opts.usageFile`'s Usage block and exits 2 before any config check.
+ */
 export async function runCli(opts, body) {
+  const { usageFile, ...rest } = opts ?? {};
   const s = new Session({
     argv: process.argv.slice(2),
     env: process.env,
@@ -134,8 +156,12 @@ export async function runCli(opts, body) {
     isTTY: tty.isatty(0),
     cwd: process.cwd(),
     now: Date.now(),
-    ...opts,
+    ...rest,
   });
+  if (usageFile && (s.argv.length === 0 || s.has('--help') || s.has('-h'))) {
+    s.stderr.write(`${usageFromHeader(usageFile)}\n`);
+    return EXIT.REFUSED;
+  }
   try {
     return await body(s);
   } catch (e) {

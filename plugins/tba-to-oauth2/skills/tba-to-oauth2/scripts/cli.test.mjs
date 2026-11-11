@@ -379,6 +379,20 @@ test('rotate-cert add without --confirm refuses with exit 2 and no requests', { 
   }
 });
 
+test('rotate-cert add refuses an RSA 2048 certificate locally, before the prompt, with no requests', { skip: SKIP_OPENSSL }, async () => {
+  const weak = genKey('rsa2048');
+  const weakPath = write('weak-2048.pem', makeCert(weak.privateKey).pem);
+  const mock = await startMock();
+  try {
+    const r = await call(rotateCert, [...acct, 'add', '--cert', weakPath, '--entity', '42', '--role', '3', '--confirm'], { mock, isTTY: true, typed: ACCOUNT });
+    assert.equal(r.code, 2, r.out + r.err);
+    assert.match(r.err, /RSA 2048/);
+    assert.equal(mock.requests.length, 0);
+  } finally {
+    await mock.close();
+  }
+});
+
 test('rotate-cert add --confirm without a TTY refuses with no requests', { skip: SKIP_OPENSSL }, async () => {
   const mock = await startMock();
   try {
@@ -647,6 +661,7 @@ test('no CLI prints or writes a secret, token, key or unmasked client ID', { ski
     [rotateCert, [...revokeArgs, '--confirm'], { isTTY: true, typed: ACCOUNT }],
     [verify, acct, {}],
   ];
+  const allAssertions = [];
   for (const [i, [run, argv, opts]] of runs.entries()) {
     const mock = await startMock(opts.overrides);
     const out = path.join(TMP, `leak-${i}.md`);
@@ -656,6 +671,7 @@ test('no CLI prints or writes a secret, token, key or unmasked client ID', { ski
       assert.ok(texts.file.length > 0, `run ${i} wrote no --out file`);
       // The assertion this run actually signed and sent.
       const assertions = mock.to('token').map((q) => new URLSearchParams(q.body).get('client_assertion')).filter(Boolean);
+      allAssertions.push(...assertions);
       for (const [where, text] of Object.entries(texts)) {
         for (const a of assertions) {
           assert.ok(!text.includes(a), `run ${i} leaked the signed assertion to ${where}`);
@@ -668,6 +684,7 @@ test('no CLI prints or writes a secret, token, key or unmasked client ID', { ski
       await mock.close();
     }
   }
+  assert.ok(allAssertions.length > 0, 'no run signed an assertion, so the leak checks above compared nothing');
 });
 
 // ---- as real processes -----------------------------------------------------
@@ -694,6 +711,23 @@ test('run as a process: m2m-check exits 0; rotate-cert revoke with piped stdin e
     const refused = await spawnCli('rotate-cert.mjs', [...revokeArgs, '--confirm'], baseEnv(mock));
     assert.equal(refused.code, 2);
     assert.equal(mock.requests.length, before);
+  } finally {
+    await mock.close();
+  }
+});
+
+test('every CLI with no arguments or --help prints usage, exits 2 and sends no request', async () => {
+  const mock = await startMock();
+  try {
+    for (const script of ['check-cert', 'check-assertion', 'm2m-check', 'refresh-check', 'rotate-cert', 'verify']) {
+      for (const argv of [[], ['--help'], ['-h']]) {
+        const r = await spawnCli(`${script}.mjs`, argv, baseEnv(mock));
+        assert.equal(r.code, 2, `${script} ${argv.join(' ')}: ${r.out}${r.err}`);
+        assert.match(r.err, /usage/i, `${script} ${argv.join(' ')}`);
+        assert.doesNotMatch(r.err, /--account is required/);
+      }
+    }
+    assert.equal(mock.requests.length, 0);
   } finally {
     await mock.close();
   }

@@ -11,7 +11,7 @@ import { chk, prefixed, runCli, runIfMain } from './lib/cli.mjs';
 export const DEFAULT_OUT = 'tba-to-oauth2-verify-report.md';
 
 export function run(opts = {}) {
-  return runCli(opts, async (s) => {
+  return runCli({ usageFile: import.meta.url, ...opts }, async (s) => {
     const cfg = s.load();
     if (!cfg) return 2;
     const checks = [];

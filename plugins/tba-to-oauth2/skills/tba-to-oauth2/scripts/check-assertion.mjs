@@ -83,7 +83,7 @@ export function collect(s, cfg) {
 }
 
 export function run(opts = {}) {
-  return runCli(opts, async (s) => {
+  return runCli({ usageFile: import.meta.url, ...opts }, async (s) => {
     const cfg = s.load();
     if (!cfg) return 2;
     return s.finish('check-assertion', cfg, collect(s, cfg));

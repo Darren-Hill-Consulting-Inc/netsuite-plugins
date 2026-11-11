@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { addCert, listCerts, mintM2M, revokeCert, tokenErrorDetail } from './lib/netsuite.mjs';
 import { maskId, redact } from './lib/mask.mjs';
+import { inspectCert } from './lib/certs.mjs';
 import { chk, runCli, runIfMain } from './lib/cli.mjs';
 import { MAX_ACTIVE } from './m2m-check.mjs';
 
@@ -97,6 +98,10 @@ async function add(s, cfg) {
   if (!/^\d+$/.test(entity) || !/^\d+$/.test(role)) return s.refuse('--entity and --role must each be a numeric internal ID');
   const cert = readCertificate(s, file);
   if (cert.error) return s.refuse(cert.error);
+  // Local pre-flight, nothing sent: refuse a certificate NetSuite would reject (for example RSA 2048 [E-47]).
+  // The signing algorithm and key pairing aren't known here, so those two checks are left to check-cert.
+  const bad = inspectCert(Buffer.from(cert.pem)).filter((c) => c.status === 'fail' && c.id !== 'alg-match' && c.id !== 'key-match');
+  if (bad.length) return s.refuse(`the certificate would not be accepted: ${bad.map((c) => `${c.title}: ${c.detail}`).join('; ')}. Run check-cert for the full report; nothing was sent`);
   if (!(await s.confirmChange(cfg, `add certificate ${cert.fileName} to the integration's client credentials mapping`))) return 2;
 
   const checks = [];
@@ -144,7 +149,7 @@ async function revoke(s, cfg) {
 }
 
 export function run(opts = {}) {
-  return runCli(opts, async (s) => {
+  return runCli({ usageFile: import.meta.url, ...opts }, async (s) => {
     const cfg = s.load();
     if (!cfg) return 2;
     const cmd = s.argv.find((a) => ['list', 'add', 'revoke'].includes(a));

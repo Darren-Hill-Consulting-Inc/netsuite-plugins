@@ -33,10 +33,17 @@ export function normalize(text) {
 
 function markdownFiles(dir) {
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir, { withFileTypes: true, recursive: true })
-    .filter((d) => d.isFile() && d.name.endsWith('.md'))
-    .map((d) => path.join(d.parentPath ?? d.path, d.name))
-    .sort();
+  // Manual walk rather than readdirSync({ recursive }), so it doesn't depend on the Node version.
+  const out = [];
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.isFile() && e.name.endsWith('.md')) out.push(p);
+    }
+  };
+  walk(dir);
+  return out.sort();
 }
 
 // Splits evidence.md into entries: {id, line, type}.
