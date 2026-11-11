@@ -1,5 +1,6 @@
 {
   "name": "tba-to-oauth2",
+  "displayName": "TBA to OAuth 2.0",
   "version": "0.1.1",
   "description": "Evidence-backed guidance and helper scripts for migrating NetSuite integrations from Token-Based Authentication (TBA) to OAuth 2.0.",
   "author": {
@@ -10,6 +11,7 @@
   "documentationUrl": "https://darrenhillconsulting.ca/tools/tba-to-oauth2",
   "supportUrl": "https://github.com/Darren-Hill-Consulting-Inc/netsuite-plugins/issues",
   "privacyPolicyUrl": "https://darrenhillconsulting.ca/tools/tba-to-oauth2#data-handling",
+  "termsOfServiceUrl": "https://github.com/Darren-Hill-Consulting-Inc/netsuite-plugins/blob/main/LICENSE",
   "repository": "https://github.com/Darren-Hill-Consulting-Inc/netsuite-plugins",
   "license": "Apache-2.0",
   "keywords": [
