@@ -58,6 +58,19 @@ On claude.ai or the API, the skill still answers and plans, but it gives you the
 - Scripts never print or write secrets, private keys or tokens. Client and certificate IDs are masked as `abcd…wxyz`. The one exception: `rotate-cert add` prints the new certificate ID once, to your terminal only, because you need it as the new `kid`. The report file keeps it masked.
 - When the scan finds credentials in your repo, it records the key name and line, never the value.
 - If your Claude Code permissions block a file (for example `.env`), the plan lists it under "Not inspected" so you can check it yourself.
+- Nothing is kept by Darren Hill Consulting. The plan, the inventory and any `--out` report are files on your machine, and you can delete them.
+
+## What the scripts send, and where
+
+`scan-hints`, `check-cert` and `check-assertion` read local files and make no network calls. `m2m-check`, `refresh-check`, `rotate-cert` and `verify` call your NetSuite account, and only when you run them. Every call goes to `https://<account>.suitetalk.api.netsuite.com`, built from `--account`:
+
+| Path | What is sent | Scripts |
+|---|---|---|
+| `/services/rest/auth/oauth2/v1/token` | Client credentials: a JWT assertion signed with your private key. The key itself is never sent. Refresh: the refresh token and client ID, plus the client secret for a confidential client | `m2m-check`, `refresh-check`, `verify` |
+| `/services/rest/query/v1/suiteql` | `SELECT 1 AS ok FROM dual`, with the access token just issued | `m2m-check`, `verify` |
+| `/services/rest/auth/oauth2/v1/clients/<client ID>/certificates` | The access token, to list certificates. To add one: the certificate block from your file (never a private key in the same file), a file name, an entity and a role. To revoke one: a request to `…/<certificate ID>/revoke` | `m2m-check`, `rotate-cert`, `verify` |
+
+The credentials come from the `NS_*` environment variables you set, and they are sent only to your own account's token endpoint. The scripts contact no other host.
 
 ## Account changes
 
