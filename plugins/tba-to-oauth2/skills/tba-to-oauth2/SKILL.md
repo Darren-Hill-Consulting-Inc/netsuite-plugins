@@ -1,6 +1,6 @@
 ---
 name: tba-to-oauth2
-description: Migrate NetSuite integrations from Token-Based Authentication (TBA), OAuth 1.0a, NLAuth or SOAP TokenPassport to OAuth 2.0. Use when asked to scan a repo or codebase for NetSuite authentication or TBA calls, plan a NetSuite TBA to OAuth 2.0 migration, or design a new NetSuite OAuth 2.0 integration (client credentials / machine-to-machine with a certificate and JWT assertion, or authorization code with PKCE). Also use for NetSuite OAuth 2.0 questions about refresh tokens, token lifetimes, PKCE, state, certificates, key sizes, certificate rotation, roles or the Login Audit Trail; for errors such as invalid_grant, invalid_request or invalid_client from the NetSuite token endpoint; and to verify a NetSuite OAuth 2.0 setup. Answers cite measured NetSuite 2026.2 results and Oracle quotes. Not for OAuth with other services (Xero, Salesforce, Google, Twitter and the like), generic OAuth questions, or SuiteScript work unrelated to authentication.
+description: Migrate NetSuite integrations from Token-Based Authentication (TBA), OAuth 1.0a, NLAuth or SOAP TokenPassport to OAuth 2.0. Use when asked to scan a repo or codebase for NetSuite authentication or TBA calls, plan a NetSuite TBA to OAuth 2.0 migration, or design a new NetSuite OAuth 2.0 integration (client credentials / machine-to-machine with a certificate and JWT assertion, or authorization code with PKCE). Also use for NetSuite OAuth 2.0 questions about refresh tokens, token lifetimes, PKCE, state, certificates, key sizes, certificate rotation, roles or the Login Audit Trail; for errors such as invalid_grant, invalid_request or invalid_client from the NetSuite token endpoint; and to test or verify a NetSuite OAuth 2.0 setup, refresh token or certificate. Answers cite measured NetSuite 2026.2 results and Oracle quotes. Not for OAuth with other services (Xero, Salesforce, Google, Twitter and the like), generic OAuth questions, or SuiteScript work unrelated to authentication.
 license: Apache-2.0
 metadata:
   author: "Darren Hill Consulting Inc."
@@ -29,16 +29,16 @@ This skill's folder is `${CLAUDE_SKILL_DIR}`. The reference files write it as a 
 
 - Never ask the user to paste a secret, private key, token, password or consumer key into the chat or into Script Debugger code.
 - Scripts read credentials from `NS_*` environment variables (listed in [references/routes.md](references/routes.md)). Tell the user which variables to set in their own shell or secrets manager.
-- If the user pastes one anyway, don't repeat it, quote it or write it to any file. Tell them to rotate it if it is live, then carry on with the environment variables.
+- If the user pastes one anyway, say plainly that secrets don't belong in the chat. Don't repeat it, quote it or write it to any file, even when it looks like a placeholder. Tell them to rotate it if it is live, then carry on with the environment variables.
 - When reading a repo, report credential key names and locations only, never values. That covers chat, the plan and the inventory.
 
 ### 3. Account changes
 
-`rotate-cert.mjs add`, `rotate-cert.mjs revoke` and `refresh-check.mjs --public` change the account or use up a refresh chain. Before running or handing over any of them:
+`rotate-cert.mjs add`, `rotate-cert.mjs revoke` and `refresh-check.mjs --public` change the account or use up a refresh chain. When the user asks for one of these changes, say steps 1 and 2 in your first reply, even if you still need details from them. Before running or handing over any of them:
 
-1. Explain in a line or two what will change ([references/routes.md](references/routes.md), "Before an account change").
-2. Say that the script will stop and ask them to type the account ID.
-3. Wait for an explicit yes in chat. Never pass `--confirm` or `--i-understand-this-ends-the-chain` on the user's behalf without it.
+1. Say that it is a change to their NetSuite account (or ends a refresh chain), and explain in a line or two what will change ([references/routes.md](references/routes.md), "Before an account change").
+2. Say that the command needs `--confirm` (`--i-understand-this-ends-the-chain` for the public refresh) and that the script will stop and ask them to type the account ID.
+3. Wait for an explicit yes in chat. Until then, don't run the command or show it with `--confirm` or `--i-understand-this-ends-the-chain`; never pass those flags on the user's behalf.
 
 Every other script is read-only.
 
@@ -64,14 +64,14 @@ Work through the whole repo without stopping to ask questions; record anything y
 1. **Locate.** On a large repo, run the locator first:
 
    ```sh
-   node "${CLAUDE_SKILL_DIR}/scripts/scan-hints.mjs" . > "${TMPDIR:-/tmp}/tba-scan-hints.json"
+   node "${CLAUDE_SKILL_DIR}/scripts/scan-hints.mjs" .
    ```
 
-   Its hits are leads, not findings. Work through `skipped` as detection-patterns section 1 says. If the locator can't run, search with the regexes in `${CLAUDE_SKILL_DIR}/scripts/scan-patterns.json` instead. On a small repo, read the code directly and use the locator as a cross-check.
-2. **Read the code.** Open every file with a hit, and always read the entry points: CI files, scripts folders, cron and scheduler definitions, Dockerfiles, Compose files, Helm charts, Terraform and Kubernetes manifests (section 1).
+   It prints JSON with locations only, never matched text. Its hits are leads, not findings. Work through `skipped` as detection-patterns section 1 says. If the locator can't run, search with the regexes in `${CLAUDE_SKILL_DIR}/scripts/scan-patterns.json` instead. On a small repo, read the code directly and use the locator as a cross-check.
+2. **Read the code** with the Read, Grep and Glob tools rather than shell commands. Open every file with a hit, and always read the entry points: CI files, scripts folders, cron and scheduler definitions, Dockerfiles, Compose files, Helm charts, Terraform and Kubernetes manifests (section 1).
 3. **Follow every signer.** For each signer, passport builder or client constructor, find every caller and the host each one reaches (section 2). A shared signer counts only through callers that send to a NetSuite host. If the host comes from config, follow it to the value; if it can't be resolved, report the site with "host unconfirmed".
 4. **Report each site on the right line**, per section 6: the HMAC line for a signer; the constructor for a library, TokenPassport or Passport; each of the three TBA steps; the `NLAuth` header line; the first line of every call to NetSuite; for existing OAuth 2.0, the assertion signing, the token request and each bearer call. A URL constant that no call uses goes under `endpoints`, not `sites`.
-5. **Record credentials** by key name and line, in every file type section 5 lists. Code that only reads a credential is part of its site.
+5. **Record credentials** by key name and line, in every file type section 5 lists. Code that only reads a credential is part of its site. If a file can't be read (a permission rule blocks `.env`, for example), don't guess its keys or record a location in another file: list it under "Not scanned" in the plan.
 6. **Exclude look-alikes** with a reason, per section 8: OAuth 1.0a to non-NetSuite hosts, generic spec helpers, vendored and generated code, SuiteScript that runs inside NetSuite.
 7. **Group and decide**, per section 7: one integration per set of credentials that runs as one thing; attended or unattended; outcome `auth-code-pkce`, `m2m`, `rewrite-rest` or `already-oauth2`. IssueToken gets `m2m` or `auth-code-pkce` like other TBA.
 8. **List what may sit outside the repo** in `outsideRepo`, with the clue that suggests it (an iPaaS config, a vendor connector's name in docs or config, a RESTlet script in the repo with no caller here). The plan gives the Login Audit Trail recipe to confirm them [E-85].
