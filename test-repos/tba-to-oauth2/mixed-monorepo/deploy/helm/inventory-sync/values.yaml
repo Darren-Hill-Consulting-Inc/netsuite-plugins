@@ -1,0 +1,21 @@
+image:
+  repository: registry.example.com/acme/inventory-sync
+  tag: "2.1.0"
+
+schedule: "5 * * * *"
+
+env:
+  WMS_URL: https://wms.example.com/api
+  NS_ACCOUNT_ID: "1234567_SB1"
+
+# TODO move to external-secrets before go-live
+secretEnv:
+  NS_CONSUMER_KEY: "FAKE_CONSUMER_KEY"
+  NS_CONSUMER_SECRET: "FAKE_CONSUMER_SECRET"
+  NS_TOKEN_ID: "FAKE_TOKEN_ID"
+  NS_TOKEN_SECRET: "FAKE_TOKEN_SECRET"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi

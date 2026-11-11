@@ -1,0 +1,59 @@
+{
+  "integrations": [
+    {
+      "id": "item-sync",
+      "outcome": "rewrite-rest",
+      "attended": false,
+      "sites": [
+        {
+          "file": "src/main/java/com/acme/erp/netsuite/NetSuiteSessionManager.java",
+          "line": 48,
+          "kind": "soap-passport"
+        },
+        {
+          "file": "src/main/java/com/acme/erp/netsuite/NetSuiteSessionManager.java",
+          "line": 56,
+          "kind": "call-soap"
+        },
+        {
+          "file": "src/main/java/com/acme/erp/netsuite/NetSuiteSessionManager.java",
+          "line": 65,
+          "kind": "call-soap"
+        },
+        {
+          "file": "src/main/java/com/acme/erp/netsuite/ItemSyncService.java",
+          "line": 35,
+          "kind": "call-soap"
+        },
+        {
+          "file": "src/main/java/com/acme/erp/netsuite/ItemSyncService.java",
+          "line": 38,
+          "kind": "call-soap"
+        }
+      ],
+      "credentials": [
+        {
+          "file": "src/main/resources/application.properties",
+          "line": 6,
+          "name": "netsuite.account"
+        },
+        {
+          "file": "src/main/resources/application.properties",
+          "line": 7,
+          "name": "netsuite.email"
+        },
+        {
+          "file": "src/main/resources/application.properties",
+          "line": 8,
+          "name": "netsuite.password"
+        },
+        {
+          "file": "src/main/resources/application.properties",
+          "line": 10,
+          "name": "netsuite.application-id"
+        }
+      ]
+    }
+  ],
+  "decoys": []
+}

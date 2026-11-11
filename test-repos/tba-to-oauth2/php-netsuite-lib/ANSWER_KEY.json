@@ -1,0 +1,54 @@
+{
+  "integrations": [
+    {
+      "id": "crm-customer-sync",
+      "outcome": "rewrite-rest",
+      "attended": false,
+      "sites": [
+        {
+          "file": "src/NetSuite/ServiceFactory.php",
+          "line": 26,
+          "kind": "library"
+        },
+        {
+          "file": "src/Sync/CustomerSync.php",
+          "line": 36,
+          "kind": "call-soap"
+        },
+        {
+          "file": "src/Sync/CustomerSync.php",
+          "line": 56,
+          "kind": "call-soap"
+        }
+      ],
+      "credentials": [
+        {
+          "file": ".env",
+          "line": 5,
+          "name": "NETSUITE_ACCOUNT"
+        },
+        {
+          "file": ".env",
+          "line": 7,
+          "name": "NETSUITE_CONSUMER_KEY"
+        },
+        {
+          "file": ".env",
+          "line": 8,
+          "name": "NETSUITE_CONSUMER_SECRET"
+        },
+        {
+          "file": ".env",
+          "line": 9,
+          "name": "NETSUITE_TOKEN_KEY"
+        },
+        {
+          "file": ".env",
+          "line": 10,
+          "name": "NETSUITE_TOKEN_SECRET"
+        }
+      ]
+    }
+  ],
+  "decoys": []
+}

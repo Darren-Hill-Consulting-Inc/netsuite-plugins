@@ -1,0 +1,9 @@
+{
+  "name": "@acme/oauth-utils",
+  "version": "1.2.0",
+  "private": true,
+  "main": "src/index.js",
+  "devDependencies": {
+    "jasmine": "^5.1.0"
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "integrations": [
+    {
+      "id": "cs-portal",
+      "outcome": "auth-code-pkce",
+      "attended": true,
+      "sites": [
+        {
+          "file": "apps/portal/src/netsuite/oauthClient.js",
+          "line": 7,
+          "kind": "library"
+        },
+        {
+          "file": "apps/portal/src/routes/netsuiteConnect.js",
+          "line": 18,
+          "kind": "tba-signing"
+        },
+        {
+          "file": "apps/portal/src/routes/netsuiteConnect.js",
+          "line": 21,
+          "kind": "tba-signing"
+        },
+        {
+          "file": "apps/portal/src/routes/netsuiteConnect.js",
+          "line": 32,
+          "kind": "tba-signing"
+        },
+        {
+          "file": "apps/portal/src/routes/cases.js",
+          "line": 21,
+          "kind": "call-restlet"
+        },
+        {
+          "file": "apps/portal/src/routes/cases.js",
+          "line": 33,
+          "kind": "call-restlet"
+        }
+      ],
+      "credentials": [
+        {
+          "file": "apps/portal/.env",
+          "line": 6,
+          "name": "NS_ACCOUNT_ID"
+        },
+        {
+          "file": "apps/portal/.env",
+          "line": 7,
+          "name": "NS_CONSUMER_KEY"
+        },
+        {
+          "file": "apps/portal/.env",
+          "line": 8,
+          "name": "NS_CONSUMER_SECRET"
+        },
+        {
+          "file": "apps/portal/src/routes/netsuiteConnect.js",
+          "line": 35,
+          "name": "token_secret"
+        }
+      ]
+    },
+    {
+      "id": "inventory-sync",
+      "outcome": "m2m",
+      "attended": false,
+      "sites": [
+        {
+          "file": "services/inventory-sync/sync.py",
+          "line": 18,
+          "kind": "library"
+        },
+        {
+          "file": "services/inventory-sync/sync.py",
+          "line": 35,
+          "kind": "call-rest"
+        }
+      ],
+      "credentials": [
+        {
+          "file": "deploy/helm/inventory-sync/values.yaml",
+          "line": 9,
+          "name": "NS_ACCOUNT_ID"
+        },
+        {
+          "file": "deploy/helm/inventory-sync/values.yaml",
+          "line": 13,
+          "name": "NS_CONSUMER_KEY"
+        },
+        {
+          "file": "deploy/helm/inventory-sync/values.yaml",
+          "line": 14,
+          "name": "NS_CONSUMER_SECRET"
+        },
+        {
+          "file": "deploy/helm/inventory-sync/values.yaml",
+          "line": 15,
+          "name": "NS_TOKEN_ID"
+        },
+        {
+          "file": "deploy/helm/inventory-sync/values.yaml",
+          "line": 16,
+          "name": "NS_TOKEN_SECRET"
+        }
+      ]
+    },
+    {
+      "id": "billing-export",
+      "outcome": "already-oauth2",
+      "attended": false,
+      "sites": [
+        {
+          "file": "services/billing-export/src/token.js",
+          "line": 17,
+          "kind": "oauth2-existing"
+        },
+        {
+          "file": "services/billing-export/src/token.js",
+          "line": 25,
+          "kind": "oauth2-existing"
+        },
+        {
+          "file": "services/billing-export/src/export.js",
+          "line": 7,
+          "kind": "oauth2-existing"
+        }
+      ],
+      "credentials": [
+        {
+          "file": "services/billing-export/.env",
+          "line": 1,
+          "name": "NS_ACCOUNT_ID"
+        },
+        {
+          "file": "services/billing-export/.env",
+          "line": 2,
+          "name": "NS_CLIENT_ID"
+        },
+        {
+          "file": "services/billing-export/.env",
+          "line": 3,
+          "name": "NS_CERTIFICATE_ID"
+        },
+        {
+          "file": "services/billing-export/.env",
+          "line": 4,
+          "name": "NS_PRIVATE_KEY_PATH"
+        }
+      ]
+    }
+  ],
+  "decoys": [
+    {
+      "file": "packages/xero-legacy/src/xeroClient.js",
+      "line": 23,
+      "why": "OAuth 1.0a HMAC-SHA1 signer for Xero: requests go to api.xero.com, not a NetSuite host."
+    },
+    {
+      "file": "packages/xero-legacy/src/xeroClient.js",
+      "line": 25,
+      "why": "The realm is a Xero tenant number that happens to look like a NetSuite account ID; the host is api.xero.com."
+    },
+    {
+      "file": "packages/xero-legacy/src/xeroClient.js",
+      "line": 31,
+      "why": "Request to api.xero.com (Reports/BASReport), not NetSuite."
+    },
+    {
+      "file": "packages/xero-legacy/.env",
+      "line": 1,
+      "why": "Xero OAuth 1.0a consumer key, not a NetSuite credential."
+    },
+    {
+      "file": "packages/xero-legacy/.env",
+      "line": 5,
+      "why": "Xero tenant number with a NetSuite-account-like shape; used only as the Xero realm."
+    },
+    {
+      "file": "apps/portal/src/social/releaseTweet.js",
+      "line": 6,
+      "why": "oauth-1.0a with HMAC-SHA1 for the Twitter API (api.twitter.com), same library as the NetSuite client."
+    },
+    {
+      "file": "apps/portal/src/social/releaseTweet.js",
+      "line": 19,
+      "why": "Posts to api.twitter.com/2/tweets, not NetSuite."
+    },
+    {
+      "file": "apps/portal/.env",
+      "line": 12,
+      "why": "Twitter OAuth 1.0a consumer key, not a NetSuite credential."
+    },
+    {
+      "file": "packages/oauth-utils/spec/support/signatureHelper.js",
+      "line": 10,
+      "why": "Generic RFC 5849 reference signer used only by specs against example.com; no NetSuite host or account."
+    }
+  ]
+}

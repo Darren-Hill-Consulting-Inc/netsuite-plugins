@@ -1,0 +1,8 @@
+{
+  "name": "acme-suitescripts",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-plugin-suitescript": "^1.3.2"
+  }
+}

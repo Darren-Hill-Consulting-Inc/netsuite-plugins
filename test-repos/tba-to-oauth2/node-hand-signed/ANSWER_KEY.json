@@ -1,0 +1,79 @@
+{
+  "integrations": [
+    {
+      "id": "order-bridge",
+      "outcome": "m2m",
+      "attended": false,
+      "sites": [
+        {
+          "file": "src/lib/nsAuth.js",
+          "line": 58,
+          "kind": "tba-signing"
+        },
+        {
+          "file": "src/clients/orderRestlet.js",
+          "line": 22,
+          "kind": "call-restlet"
+        },
+        {
+          "file": "src/clients/inventoryRestlet.js",
+          "line": 9,
+          "kind": "call-restlet"
+        }
+      ],
+      "credentials": [
+        {
+          "file": ".env",
+          "line": 1,
+          "name": "NS_ACCOUNT_ID"
+        },
+        {
+          "file": ".env",
+          "line": 2,
+          "name": "NS_CONSUMER_KEY"
+        },
+        {
+          "file": ".env",
+          "line": 3,
+          "name": "NS_CONSUMER_SECRET"
+        },
+        {
+          "file": ".env",
+          "line": 4,
+          "name": "NS_TOKEN_ID"
+        },
+        {
+          "file": ".env",
+          "line": 5,
+          "name": "NS_TOKEN_SECRET"
+        },
+        {
+          "file": "config/default.json",
+          "line": 7,
+          "name": "accountId"
+        },
+        {
+          "file": "config/default.json",
+          "line": 8,
+          "name": "consumerKey"
+        },
+        {
+          "file": "config/default.json",
+          "line": 9,
+          "name": "consumerSecret"
+        },
+        {
+          "file": "config/default.json",
+          "line": 10,
+          "name": "tokenId"
+        },
+        {
+          "file": "config/default.json",
+          "line": 11,
+          "name": "tokenSecret"
+        }
+      ]
+    }
+  ],
+  "decoys": []
+}

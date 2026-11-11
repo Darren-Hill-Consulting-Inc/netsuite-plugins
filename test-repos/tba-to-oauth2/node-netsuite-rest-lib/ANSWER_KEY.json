@@ -1,0 +1,54 @@
+{
+  "integrations": [
+    {
+      "id": "customer-export",
+      "outcome": "m2m",
+      "attended": false,
+      "sites": [
+        {
+          "file": "src/netsuite.js",
+          "line": 3,
+          "kind": "library"
+        },
+        {
+          "file": "src/jobs/exportCustomers.js",
+          "line": 9,
+          "kind": "call-suiteql"
+        },
+        {
+          "file": "src/jobs/exportCustomers.js",
+          "line": 25,
+          "kind": "call-rest"
+        }
+      ],
+      "credentials": [
+        {
+          "file": "docker-compose.yml",
+          "line": 6,
+          "name": "NS_ACCOUNT_ID"
+        },
+        {
+          "file": "docker-compose.yml",
+          "line": 8,
+          "name": "NS_CONSUMER_KEY"
+        },
+        {
+          "file": "docker-compose.yml",
+          "line": 9,
+          "name": "NS_CONSUMER_SECRET"
+        },
+        {
+          "file": "docker-compose.yml",
+          "line": 10,
+          "name": "NS_TOKEN"
+        },
+        {
+          "file": "docker-compose.yml",
+          "line": 11,
+          "name": "NS_TOKEN_SECRET"
+        }
+      ]
+    }
+  ],
+  "decoys": []
+}

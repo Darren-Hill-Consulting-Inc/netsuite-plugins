@@ -1,0 +1,2 @@
+# node-hand-signed/.env is planted with CRLF line endings on purpose; keep them.
+node-hand-signed/.env -text

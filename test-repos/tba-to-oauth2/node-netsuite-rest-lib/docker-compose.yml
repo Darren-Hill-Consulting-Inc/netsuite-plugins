@@ -1,0 +1,19 @@
+services:
+  customer-export:
+    build: .
+    restart: unless-stopped
+    environment:
+      NS_ACCOUNT_ID: "1234567_SB1"
+      NS_BASE_URL: "https://1234567-sb1.suitetalk.api.netsuite.com/services/rest"
+      NS_CONSUMER_KEY: "FAKE_CONSUMER_KEY"
+      NS_CONSUMER_SECRET: "FAKE_CONSUMER_SECRET"
+      NS_TOKEN: "FAKE_TOKEN_ID"
+      NS_TOKEN_SECRET: "FAKE_TOKEN_SECRET"
+      BQ_DATASET: "erp_mirror"
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp.json
+    secrets:
+      - gcp.json
+
+secrets:
+  gcp.json:
+    file: ./gcp-service-account.json

@@ -1,0 +1,17 @@
+{
+  "name": "vendor-portal-sync",
+  "version": "0.8.0",
+  "private": true,
+  "main": "src/syncVendors.js",
+  "scripts": {
+    "start": "node src/syncVendors.js",
+    "gen:soap": "wsdl-tsclient ./wsdl/netsuite.wsdl -o src/generated/netsuite"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "netsuite-rest": "^1.1.0"
+  },
+  "devDependencies": {
+    "wsdl-tsclient": "^1.3.1"
+  }
+}

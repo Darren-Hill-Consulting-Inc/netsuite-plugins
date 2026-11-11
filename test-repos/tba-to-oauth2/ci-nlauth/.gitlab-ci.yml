@@ -1,0 +1,39 @@
+stages:
+  - test
+  - deploy
+  - notify
+
+variables:
+  NS_ACCOUNT: "1234567_SB1"
+  NS_EMAIL: "ci-deployer@example.com"
+  NS_ROLE: "1031"
+  # NS_PASSWORD is a masked CI/CD variable (Settings > CI/CD > Variables)
+  RESTLET_URL: "https://1234567-sb1.restlets.api.netsuite.com/app/site/hosting/restlet.nl"
+
+lint:
+  stage: test
+  image: node:20
+  script:
+    - npm ci
+    - npx eslint src/FileCabinet
+
+deploy-sandbox:
+  stage: deploy
+  image: node:20
+  only:
+    - main
+  script:
+    - npm ci
+    - ./scripts/deploy.sh
+
+record-release:
+  stage: notify
+  image: curlimages/curl:8.8.0
+  only:
+    - main
+  script:
+    - >
+      curl --fail -sS -X POST "${RESTLET_URL}?script=customscript_acme_release_log&deploy=1"
+      -H "Authorization: NLAuth nlauth_account=${NS_ACCOUNT}, nlauth_email=${NS_EMAIL}, nlauth_signature=${NS_PASSWORD}, nlauth_role=${NS_ROLE}"
+      -H "Content-Type: application/json"
+      -d "{\"version\":\"${CI_COMMIT_SHORT_SHA}\",\"pipeline\":\"${CI_PIPELINE_URL}\"}"

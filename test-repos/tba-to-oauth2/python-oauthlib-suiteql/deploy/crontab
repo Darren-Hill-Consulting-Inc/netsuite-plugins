@@ -1,0 +1,2 @@
+# m h dom mon dow  command
+15 2 * * * cd /opt/finance-loader && .venv/bin/python -m jobs.nightly_ar_export >> /var/log/finance-loader/ar.log 2>&1

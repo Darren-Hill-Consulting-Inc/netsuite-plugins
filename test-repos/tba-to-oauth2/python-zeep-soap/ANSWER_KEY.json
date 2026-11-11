@@ -1,0 +1,54 @@
+{
+  "integrations": [
+    {
+      "id": "ap-vendor-bills",
+      "outcome": "rewrite-rest",
+      "attended": false,
+      "sites": [
+        {
+          "file": "ns_soap/client.py",
+          "line": 40,
+          "kind": "soap-tba"
+        },
+        {
+          "file": "ns_soap/vendors.py",
+          "line": 9,
+          "kind": "call-soap"
+        },
+        {
+          "file": "ns_soap/vendors.py",
+          "line": 24,
+          "kind": "call-soap"
+        }
+      ],
+      "credentials": [
+        {
+          "file": "config/netsuite.ini",
+          "line": 2,
+          "name": "account"
+        },
+        {
+          "file": "config/netsuite.ini",
+          "line": 3,
+          "name": "consumer_key"
+        },
+        {
+          "file": "config/netsuite.ini",
+          "line": 4,
+          "name": "consumer_secret"
+        },
+        {
+          "file": "config/netsuite.ini",
+          "line": 5,
+          "name": "token_id"
+        },
+        {
+          "file": "config/netsuite.ini",
+          "line": 6,
+          "name": "token_secret"
+        }
+      ]
+    }
+  ],
+  "decoys": []
+}

@@ -1,0 +1,13 @@
+{
+  "name": "acme-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/billing-export",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "spec": "jasmine --config=packages/oauth-utils/spec/support/jasmine.json"
+  }
+}

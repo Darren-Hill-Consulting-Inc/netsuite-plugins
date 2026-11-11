@@ -1,0 +1,49 @@
+{
+  "integrations": [
+    {
+      "id": "ci-release-and-deploy",
+      "outcome": "m2m",
+      "attended": false,
+      "sites": [
+        {
+          "file": ".gitlab-ci.yml",
+          "line": 36,
+          "kind": "call-restlet"
+        },
+        {
+          "file": ".gitlab-ci.yml",
+          "line": 37,
+          "kind": "nlauth"
+        },
+        {
+          "file": "scripts/deploy.sh",
+          "line": 10,
+          "kind": "nlauth"
+        },
+        {
+          "file": "scripts/deploy.sh",
+          "line": 16,
+          "kind": "call-restlet"
+        }
+      ],
+      "credentials": [
+        {
+          "file": ".gitlab-ci.yml",
+          "line": 7,
+          "name": "NS_ACCOUNT"
+        },
+        {
+          "file": ".gitlab-ci.yml",
+          "line": 8,
+          "name": "NS_EMAIL"
+        },
+        {
+          "file": ".gitlab-ci.yml",
+          "line": 10,
+          "name": "NS_PASSWORD"
+        }
+      ]
+    }
+  ],
+  "decoys": []
+}

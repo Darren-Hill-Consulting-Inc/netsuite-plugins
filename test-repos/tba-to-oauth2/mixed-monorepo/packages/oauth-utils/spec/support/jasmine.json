@@ -1,0 +1,5 @@
+{
+  "spec_dir": "packages/oauth-utils/spec",
+  "spec_files": ["**/*[sS]pec.js"],
+  "helpers": ["support/**/*.js"]
+}

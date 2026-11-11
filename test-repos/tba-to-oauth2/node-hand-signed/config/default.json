@@ -1,0 +1,18 @@
+{
+  "store": {
+    "apiBase": "https://shop.example.com/api/v2",
+    "pollMinutes": 5
+  },
+  "netsuite": {
+    "accountId": "1234567_SB1",
+    "consumerKey": "FAKE_CONSUMER_KEY",
+    "consumerSecret": "FAKE_CONSUMER_SECRET",
+    "tokenId": "FAKE_TOKEN_ID",
+    "tokenSecret": "FAKE_TOKEN_SECRET",
+    "restletHost": "https://1234567-sb1.restlets.api.netsuite.com",
+    "restlets": {
+      "orders": { "script": "customscript_acme_order_import", "deploy": "customdeploy_acme_order_import" },
+      "inventory": { "script": "customscript_acme_stock_levels", "deploy": "1" }
+    }
+  }
+}

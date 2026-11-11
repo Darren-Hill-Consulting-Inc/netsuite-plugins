@@ -4,3 +4,5 @@ tools/.cache/
 tools/.denylist*
 **/eval-out/
 evals/results/
+# Fixture: the vendored copy is the point of this fixture, so commit it.
+!test-repos/tba-to-oauth2/vendored-noise/node_modules/

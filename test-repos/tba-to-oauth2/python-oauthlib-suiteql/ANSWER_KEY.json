@@ -1,0 +1,49 @@
+{
+  "integrations": [
+    {
+      "id": "ar-warehouse-loader",
+      "outcome": "m2m",
+      "attended": false,
+      "sites": [
+        {
+          "file": "nsclient/session.py",
+          "line": 23,
+          "kind": "library"
+        },
+        {
+          "file": "nsclient/suiteql.py",
+          "line": 13,
+          "kind": "call-suiteql"
+        }
+      ],
+      "credentials": [
+        {
+          "file": "settings.yaml",
+          "line": 6,
+          "name": "account_id"
+        },
+        {
+          "file": "settings.yaml",
+          "line": 7,
+          "name": "consumer_key"
+        },
+        {
+          "file": "settings.yaml",
+          "line": 8,
+          "name": "consumer_secret"
+        },
+        {
+          "file": "settings.yaml",
+          "line": 9,
+          "name": "token_id"
+        },
+        {
+          "file": "settings.yaml",
+          "line": 10,
+          "name": "token_secret"
+        }
+      ]
+    }
+  ],
+  "decoys": []
+}

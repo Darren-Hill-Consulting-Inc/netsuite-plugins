@@ -1,0 +1,212 @@
+[
+  {
+    "id": "tba-signature-method",
+    "kind": "tba-signing",
+    "regex": "HMAC[-_]?SHA-?(?:256|1)\\b|SIGNATURE_HMAC|signature_?method",
+    "flags": "i",
+    "note": "OAuth 1.0a signature method (HMAC-SHA256 or HMAC-SHA1). Look-alike risk: Xero, Twitter and QuickBooks use the same methods; confirm the host."
+  },
+  {
+    "id": "tba-oauth-param",
+    "kind": "tba-signing",
+    "regex": "\\boauth_(?:consumer_key|token|nonce|timestamp|signature|version|callback|verifier)\\b",
+    "flags": "",
+    "note": "OAuth 1.0a protocol parameter in a hand-built header or base string."
+  },
+  {
+    "id": "tba-realm",
+    "kind": "tba-signing",
+    "regex": "\\brealm\\b['\"]?\\s*(?:[:=]|=>)|realm=\"",
+    "flags": "i",
+    "note": "OAuth 1.0a realm. NetSuite needs the account ID here (1234567 or 1234567_SB1)."
+  },
+  {
+    "id": "tba-realm-account-id",
+    "kind": "tba-signing",
+    "regex": "realm\\W{0,4}\\d{4,8}(?:_(?:SB|RP)\\d*)?\\b",
+    "flags": "i",
+    "note": "Host check: a realm with a NetSuite account-ID shape. A Xero tenant number can look the same; confirm the request host."
+  },
+  {
+    "id": "tba-hmac",
+    "kind": "tba-signing",
+    "regex": "createHmac\\(\\s*['\"]sha(?:256|1)['\"]|hmac\\.new\\(|\\bHMACSHA(?:256|1)\\b|Mac\\.getInstance\\(\\s*\"Hmac|hash_hmac\\(\\s*['\"]sha",
+    "flags": "",
+    "note": "HMAC computation: a hand-written OAuth 1.0a or TokenPassport signer, or an unrelated HMAC (webhooks); read the inputs."
+  },
+  {
+    "id": "tba-base-string",
+    "kind": "tba-signing",
+    "regex": "base_?string|signature_?base|baseString",
+    "flags": "i",
+    "note": "Signature base string construction (OAuth 1.0a or TokenPassport)."
+  },
+  {
+    "id": "tba-auth-header",
+    "kind": "tba-signing",
+    "regex": "\\btoHeader\\s*\\(|\\bAuthorization\\b['\"]?\\s*(?:[:=,]|=>)",
+    "flags": "",
+    "note": "An Authorization header set on a request. Read what builds the value: OAuth 1.0a, NLAuth or Bearer."
+  },
+  {
+    "id": "tba-three-step",
+    "kind": "tba-signing",
+    "regex": "/rest/(?:requesttoken|accesstoken)\\b|authorizetoken\\.nl",
+    "flags": "i",
+    "note": "TBA three-step authorization flow (request token, authorize, access token): a user-attended TBA integration."
+  },
+  {
+    "id": "soap-token-passport",
+    "kind": "soap-tba",
+    "regex": "\\b[Tt]okenPassport(?:Signature)?\\b",
+    "flags": "",
+    "note": "SOAP TokenPassport header (TBA on SOAP web services). Generated proxies define it thousands of times; the hand-written construction is the site."
+  },
+  {
+    "id": "soap-passport",
+    "kind": "soap-passport",
+    "regex": "\\bPassport\\b|<(?:\\w+:)?passport\\b|['\"]passport['\"]",
+    "flags": "",
+    "note": "SOAP Passport: user email/password login (login operation or request-level passport)."
+  },
+  {
+    "id": "soap-issuetoken",
+    "kind": "issuetoken",
+    "regex": "issue_?token",
+    "flags": "i",
+    "note": "IssueToken endpoint or call: TBA tokens issued from user credentials."
+  },
+  {
+    "id": "soap-endpoint",
+    "kind": "call-soap",
+    "regex": "suitetalk\\.api\\.netsuite\\.com/services/NetSuitePort|webservices(?:\\.\\w+)?\\.netsuite\\.com|NetSuitePort_\\d{4}_\\d|/wsdl/v\\d{4}_\\d|netsuite\\.wsdl",
+    "flags": "i",
+    "note": "SOAP web services endpoint or WSDL (the version is in the path)."
+  },
+  {
+    "id": "soap-operation",
+    "kind": "call-soap",
+    "regex": "\\b(?:port|nsPort|service|_service|nsService|netSuiteService|netsuiteService|ns_service|soapClient|client\\.service)(?:\\(\\))?\\s*(?:\\.|->)\\s*(?:search|searchMore|searchMoreWithId|searchNext|get|getList|getAll|add|addList|update|updateList|upsert|upsertList|delete|deleteList|login|logout|initialize|initializeList|getSelectValue|getSavedSearch|getDataCenterUrls|asyncSearch|asyncAddList)(?:Async)?\\s*\\(",
+    "flags": "",
+    "note": "SOAP operation on a typical port or service variable. Confirm the receiver is a SuiteTalk port."
+  },
+  {
+    "id": "nlauth",
+    "kind": "nlauth",
+    "regex": "\\bNLAuth\\b|nlauth_(?:account|email|signature|role)",
+    "flags": "i",
+    "note": "NLAuth header: user email and password on every request."
+  },
+  {
+    "id": "restlet-url",
+    "kind": "call-restlet",
+    "regex": "restlet\\.nl|restlets\\.api\\.netsuite\\.com|/app/site/hosting/restlet",
+    "flags": "i",
+    "note": "RESTlet URL."
+  },
+  {
+    "id": "rest-record",
+    "kind": "call-rest",
+    "regex": "services/rest/record/v1|\\brecord/v1/",
+    "flags": "",
+    "note": "REST web services record API path."
+  },
+  {
+    "id": "suiteql",
+    "kind": "call-suiteql",
+    "regex": "suiteql",
+    "flags": "i",
+    "note": "SuiteQL (REST query service or a SuiteQL helper)."
+  },
+  {
+    "id": "netsuite-host",
+    "kind": "call-rest",
+    "regex": "netsuite\\.com",
+    "flags": "i",
+    "note": "Host check: any NetSuite host. Classify the call by its path; a signer whose requests never reach a NetSuite host is a look-alike."
+  },
+  {
+    "id": "lib-node",
+    "kind": "library",
+    "regex": "['\"](?:netsuite-rest|netsuite-api-client|suiteql|node-suitetalk|oauth-1\\.0a)['\"]|\\bNsApiWrapper\\b|\\bNetsuiteApiClient\\b|\\bOAuth\\(\\s*\\{",
+    "flags": "",
+    "note": "Node library: netsuite-rest, netsuite-api-client, suiteql, node-suitetalk or oauth-1.0a (oauth-1.0a also signs for Twitter, Xero and others)."
+  },
+  {
+    "id": "lib-python",
+    "kind": "library",
+    "regex": "requests[-_]oauthlib|oauthlib\\.oauth1|\\bOAuth1(?:Session)?\\s*\\(|\\bnetsuitesdk\\b|\\bNetSuiteConnection\\b|from\\s+netsuite\\s+import|import\\s+netsuite\\b|\\bzeep\\b",
+    "flags": "",
+    "note": "Python library: requests-oauthlib / oauthlib OAuth1, netsuitesdk, netsuite, zeep."
+  },
+  {
+    "id": "lib-php",
+    "kind": "library",
+    "regex": "netsuite-php|\\bNetSuiteService\\b",
+    "flags": "",
+    "note": "PHP netsuite-php (NetSuiteService). .NET proxies use the same class name."
+  },
+  {
+    "id": "lib-java-dotnet",
+    "kind": "library",
+    "regex": "scribejava|OAuth10aService|\\bcom\\.netsuite\\.webservices|\\bNetSuitePortType(?:Client)?\\b|\\bNetSuiteServiceLocator\\b|\\bNetSuiteBinding\\b|SuiteTalk",
+    "flags": "",
+    "note": "Java or .NET SuiteTalk stubs (Axis, JAX-WS, WCF, Celigo.SuiteTalk) or ScribeJava OAuth 1.0a."
+  },
+  {
+    "id": "cred-tba-keys",
+    "kind": "credential",
+    "regex": "(?:consumer|token)[_.-]?(?:key|secret|id)\\b|consumer_secret_key|resource_owner_(?:key|secret)|client_(?:key|secret)\\b",
+    "flags": "i",
+    "note": "Consumer key/secret or token ID/secret."
+  },
+  {
+    "id": "cred-ns-env",
+    "kind": "credential",
+    "regex": "\\b(?:NS|NETSUITE)_[A-Z0-9_]+",
+    "flags": "",
+    "note": "NetSuite-prefixed environment variable."
+  },
+  {
+    "id": "cred-account-id",
+    "kind": "credential",
+    "regex": "account[_-]?id\\b|\\baccount['\"]?\\s*(?:[=:]|=>)",
+    "flags": "i",
+    "note": "Account ID setting."
+  },
+  {
+    "id": "cred-account-id-value",
+    "kind": "credential",
+    "regex": "\\b\\d{4,8}_(?:SB|RP)\\d*\\b|\\bTSTDRV\\d+\\b",
+    "flags": "i",
+    "note": "A value shaped like a NetSuite sandbox, release-preview or test-drive account ID."
+  },
+  {
+    "id": "cred-login",
+    "kind": "credential",
+    "regex": "\\b(?:netsuite|ns)[._-]?(?:email|password|role|app(?:lication)?[_-]?id)\\b",
+    "flags": "i",
+    "note": "NLAuth or SOAP Passport login: email, password, role, application ID."
+  },
+  {
+    "id": "cred-oauth2",
+    "kind": "credential",
+    "regex": "client[_-]?id\\b|cert(?:ificate)?[_-]?id\\b|private[_-]?key(?:[_-]?(?:path|file))?\\b",
+    "flags": "i",
+    "note": "OAuth 2.0 client ID, certificate ID or private key location."
+  },
+  {
+    "id": "oauth2-endpoint",
+    "kind": "oauth2-existing",
+    "regex": "oauth2/v1/(?:token|authorize)|\\btoken_?url\\b|\\btokenEndpoint\\b",
+    "flags": "i",
+    "note": "OAuth 2.0 token or authorization endpoint."
+  },
+  {
+    "id": "oauth2-grant",
+    "kind": "oauth2-existing",
+    "regex": "client_credentials|jwt-bearer|client_assertion|authorization_code|code_verifier|code_challenge|\\bSignJWT\\b|jwt\\.sign\\(",
+    "flags": "",
+    "note": "OAuth 2.0 grant, PKCE or JWT assertion: possibly already migrated. Confirm the token endpoint is NetSuite."
+  }
+]
