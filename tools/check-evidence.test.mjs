@@ -104,3 +104,15 @@ test('paths are overridable', () => {
   });
   assert.deepEqual(result, { errors: [], warnings: [] });
 });
+
+test('malformed entries', () => {
+  const noType = fixture({ [EVIDENCE]: '## E-01 No type\n- Finding: Something.\n' });
+  const badQuote = fixture({
+    [EVIDENCE]: `## E-01 Bad quote\n- Type: Oracle quote — The refresh token is valid for seven days. — ${URL}\n`,
+    ...cache,
+  });
+  const unknownType = fixture({ [EVIDENCE]: '## E-01 Hearsay\n- Type: Rumour — heard it somewhere\n' });
+  assert.match(checkEvidence({ root: noType }).errors.join('\n'), /E-01: missing "- Type:" line/);
+  assert.match(checkEvidence({ root: badQuote }).errors.join('\n'), /E-01: Oracle quote must read/);
+  assert.match(checkEvidence({ root: unknownType }).errors.join('\n'), /E-01: Type must start with Measured, Oracle quote or Inference/);
+});

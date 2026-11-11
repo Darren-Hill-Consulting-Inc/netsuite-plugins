@@ -41,14 +41,15 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 | E-25 | Oracle: access token valid for 60 minutes |
 | E-26 | Oracle: refresh token valid for seven days |
 | E-27 | Oracle: public-client refresh token two days by default, one-time use |
-| E-28 | Oracle: accepted refresh validity is 1 to 720 hours |
+| E-28 | Oracle: accepted refresh validity is 1 to 720 hours (in the public-client note) |
 | E-29 | Confidential client defaults: 3,600 s access, 604,800 s refresh |
 | E-30 | Confidential refresh validity is editable, default 168, range 1 to 720 h |
 | E-31 | At 720 h, a confidential refresh token carried a 30-day expiry |
 | E-32 | A confidential refresh returns an access token only |
 | E-33 | Re-authorizing doesn't revoke earlier refresh tokens |
 | E-34 | Re-consent under Always Ask is one Continue click |
-| E-35 | No refresh setting gets an authorization code integration past 30 days |
+| E-35 | No confidential-client refresh setting gives a refresh token past a 30-day expiry |
+| E-71 | An attended confidential integration needs re-authorizing at least every 30 days |
 | E-36 | A public-client refresh returns a new refresh token; `oit` stays constant |
 | E-37 | Reusing a rotated public refresh token fails with `invalid_grant` |
 | E-38 | One reuse kills the whole public refresh chain |
@@ -56,7 +57,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 | E-40 | Maximum rotation time counts from `oit` and fails with `invalid_request` |
 | E-41 | Client credentials: no refresh token, 60-minute access token |
 | E-42 | Oracle: assertion algorithms PS256 to ES512 |
-| E-43 | PS256, PS512 and ES256 assertions worked |
+| E-43 | PS256, PS512 and ES256 assertions each returned an access token |
 | E-44 | An RS256 assertion fails with a bare `invalid_grant` |
 | E-45 | The signature algorithm must match the key's curve |
 | E-46 | Oracle: RSA keys must be 3072 or 4096 bits |
@@ -205,7 +206,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 
 ## E-28 Accepted refresh validity is 1 to 720 hours
 - Type: Oracle quote — "The accepted values are between one hour and 720 hours (thirty days in hours)." — [Refresh Token POST Request to the Token Endpoint](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158082518856.html), fetched 2026-11-11
-- Finding: Oracle's stated range for the refresh token validity field.
+- Finding: Oracle's stated range for the refresh token validity field. On the page, this sentence sits inside the "If you use public clients…" note, so Oracle documents the range only for public clients.
 
 ## E-29 Confidential client default lifetimes
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p02
@@ -213,16 +214,16 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 
 ## E-30 Confidential refresh validity is editable, range 1 to 720 hours
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p41
-- Finding: On a confidential integration record the Refresh token validity (in hours) field defaulted to 168 and was editable. Saving 8,760 failed with "oauth2refreshvalidity: Invalid number (must be between 1 and 720)."
-- Oracle says: [E-26], [E-27], [E-28]
+- Finding: On a confidential integration record the Refresh token validity (in hours) field defaulted to 168 and was editable. Saving 8,760 failed with "oauth2refreshvalidity: Invalid number (must be between 1 and 720)." Oracle describes this field and its range only for public clients [E-27], [E-28]; the confidential-client behaviour is measured, not documented.
+- Oracle says: [E-26]
 
-## E-31 At 720 hours, a confidential refresh token lasted 30 days
+## E-31 At 720 hours, a confidential refresh token carried a 30-day expiry
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p13b, p14c
 - Finding: After setting the validity to 720 and authorizing again, the issued refresh token's `exp − iat` was 2,592,000 s (30 days), and it refreshed successfully. The token was not tested to expiry.
 
 ## E-32 A confidential refresh returns an access token only
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p14, p14c
-- Finding: Refreshing on a confidential client returned `access_token`, `expires_in` and `token_type`, with no new `refresh_token`. See [E-35] for what that means for re-authorization.
+- Finding: Refreshing on a confidential client returned `access_token`, `expires_in` and `token_type`, with no new `refresh_token`. See [E-71] for what that means for re-authorization.
 
 ## E-33 Re-authorizing doesn't revoke earlier refresh tokens
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p42
@@ -232,9 +233,13 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p13b
 - Finding: With the consent policy set to Always Ask, second and later authorizations showed when the user had authorized the application before, with Continue and Go Back, instead of the full consent screen.
 
-## E-35 No refresh setting gets past 30 days
+## E-35 No confidential-client refresh setting gets past a 30-day expiry
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p41, p13b
-- Finding: The validity field's ceiling is 720 hours, and a refresh token issued at 720 lasted 30 days. An authorization code integration needs a person to authorize it again at least every 30 days; an unattended integration belongs on client credentials.
+- Finding: On a confidential client, the validity field's ceiling is 720 hours, and a refresh token issued at 720 carried a 30-day expiry (`exp − iat`; not tested to expiry). Public-client chains are bounded instead by Maximum time for token rotation [E-40], whose ceiling was not measured.
+
+## E-71 An attended confidential integration needs re-authorizing every 30 days
+- Type: Inference — from [E-30], [E-31], [E-32]
+- Finding: A confidential refresh doesn't return a new refresh token [E-32], and the longest refresh token carried a 30-day expiry [E-30], [E-31]. So an authorization code integration on a confidential client likely needs a person to authorize it again at least every 30 days, and an integration nobody attends belongs on client credentials. This doesn't cover public clients: their rotation ceiling was not measured.
 
 ## Public clients: refresh token rotation
 
@@ -268,9 +273,9 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 - Type: Oracle quote — "The value of the alg parameter is PS256, PS384, PS512, ES256, ES384, or ES512." — [Request Token (JWT) Structure](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html), fetched 2026-11-11
 - Finding: RS256 is not on the list.
 
-## E-43 PS256, PS512 and ES256 assertions worked
+## E-43 PS256, PS512 and ES256 assertions each returned an access token
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p21a, p25b, p25c
-- Finding: Assertions signed with PS256 and PS512 (RSA 3072 key) and ES256 (EC P-256 key) each returned an access token that ran a REST SuiteQL query.
+- Finding: Assertions signed with PS256 and PS512 (RSA 3072 key) and ES256 (EC P-256 key) each returned an access token (HTTP 200). The PS256 token also ran a REST SuiteQL query.
 
 ## E-44 RS256 fails with a bare `invalid_grant`
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p25a
