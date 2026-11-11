@@ -12,6 +12,7 @@ Write both from the same findings, so every integration, site, credential locati
 - **Citations.** Every fact in the plan carries its `[E-nn]`, as in this skill. The user's repo doesn't have `evidence.md`, so the plan ends with an Evidence section: for each ID cited, copy the entry's title and its Type line (Measured with the release, date and probe IDs; Oracle quote with the quote, link and fetched date; or Inference). Where nothing was measured or documented, write "not measured" or "not documented".
 - **Inference is labelled.** Attended or unattended, the role a call needs, and the effort are judgements from reading the code. Say so where they appear.
 - **Line numbers** follow [detection-patterns.md](detection-patterns.md) section 6: the signing line for a signer, the constructor for a library or passport, the first line of each call, the header line for NLAuth.
+- **Script paths.** Replace `<skill scripts folder>` with the full path of `${CLAUDE_SKILL_DIR}/scripts` when you write the plan, so the commands run as written.
 - **Account IDs** in the plan are written as `<account>`. Don't copy a real account ID, email, client ID, certificate ID or token from the repo.
 
 ### Ordering
@@ -109,6 +110,8 @@ Facts carry an evidence ID; the Evidence section at the end says whether each wa
   5. <verify: the script and the expected result>
   6. <cut over, then revoke the TBA token in NetSuite and remove its credentials>
 
+  For a `rewrite-rest` integration, step 3 becomes: map the SOAP operations with Oracle's upgrade guide [E-15], then follow the m2m or auth-code steps for the REST replacement. Don't claim which SOAP operations have a REST equivalent; the guide is the reference.
+
 ## Order of work
 
 <The waves, with the integrations in each and the date that drives it.>
@@ -140,14 +143,14 @@ What it won't show:
 
 ## Validation checklist
 
-Set the variables in your own shell or secrets manager; never paste values into a chat. Scripts are in the skill's `scripts/` folder.
+Set the variables in your own shell or secrets manager; never paste values into a chat. Run each command with `node <skill scripts folder>/<script>`.
 
-- [ ] `check-cert.mjs --account <account>`: key size, curve, algorithm, two-year validity, key matches certificate.
-- [ ] `check-assertion.mjs --account <account> --assertion <file>`: a saved assertion's header and claims.
-- [ ] `m2m-check.mjs --account <account>`: token, lifetime, SuiteQL `SELECT 1`, certificate list. Read-only.
-- [ ] `refresh-check.mjs --account <account>`: confidential refresh. A public client's refresh check ends the refresh chain [E-36], [E-38]; run it only when ready to authorize again.
-- [ ] `rotate-cert.mjs --account <account> list`: free slots and `valid_until` [E-51], [E-57].
-- [ ] `verify.mjs --account <account>`: all of the above that apply, in one report.
+- [ ] `node <skill scripts folder>/check-cert.mjs --account <account>`: key size, curve, algorithm, two-year validity, key matches certificate.
+- [ ] `node <skill scripts folder>/check-assertion.mjs --account <account> --assertion <file> --kid <certificate id>`: a saved assertion's header and claims, and that its `kid` matches the certificate ID [E-78].
+- [ ] `node <skill scripts folder>/m2m-check.mjs --account <account>`: token, lifetime, SuiteQL `SELECT 1`, certificate list. Read-only.
+- [ ] `node <skill scripts folder>/refresh-check.mjs --account <account>`: confidential refresh. A public client's refresh check ends the refresh chain [E-36], [E-38]; run it only when ready to authorize again.
+- [ ] `node <skill scripts folder>/rotate-cert.mjs --account <account> list`: free slots and `valid_until` [E-51], [E-57].
+- [ ] `node <skill scripts folder>/verify.mjs --account <account>`: all of the above that apply, in one report.
 - [ ] Login Audit Trail: the integration's recent rows show its application name and no access token name [E-64], [E-65].
 
 ## Evidence

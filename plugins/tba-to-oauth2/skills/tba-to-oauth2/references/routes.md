@@ -55,7 +55,7 @@ Exit codes: 0 all checks passed, 1 a check failed, 2 a configuration error or a 
 
 Before suggesting `rotate-cert add`, `rotate-cert revoke` or `refresh-check --public`:
 
-1. Say in one or two lines exactly what will change. For `add`: a new active certificate on the integration, one of five slots [E-51]. For `revoke`: new tokens with that certificate stop working at once [E-60], tokens already issued may run out their 60 minutes [E-61]. For `--public`: the app's refresh chain ends and someone must authorize again [E-36], [E-38].
+1. Say in one or two lines exactly what will change. For `add`: a new active certificate on the integration, one of five slots [E-51]. For `revoke`: new token requests signed with that certificate fail with `invalid_client` [E-60]; tokens already issued may run out their 60 minutes [E-61]. For `--public`: the app's refresh chain ends and someone must authorize again [E-36], [E-38].
 2. Say that the script will stop and ask them to type the account ID before it sends anything.
 3. Wait for an explicit yes in chat. Only then give or run the command with `--confirm` (or `--i-understand-this-ends-the-chain`). Never add those flags on the user's behalf without that yes.
 

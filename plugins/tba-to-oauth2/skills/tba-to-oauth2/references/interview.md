@@ -220,7 +220,7 @@ Design A, except for signing:
 
 - Enable the authorization code grant, and set the redirect URI your app uses. Choose the scope the calls need [E-80].
 - The role of each user who authorizes needs the Log in Using OAuth 2.0 Access Tokens permission [E-16].
-- Refresh token validity (in hours): default 168, range 1 to 720 [E-30]. At 720 a refresh token carried a 30-day expiry [E-31]. Changing it affects tokens issued after a new authorization [E-31], [E-33].
+- Refresh token validity (in hours): default 168, range 1 to 720 [E-30]. At 720 a refresh token carried a 30-day expiry [E-31]. A new authorization picks up the new value [E-31]; earlier refresh tokens kept working in testing [E-33].
 
 ### PKCE and state
 

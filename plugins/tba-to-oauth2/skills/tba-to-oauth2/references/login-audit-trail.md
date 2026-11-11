@@ -10,7 +10,7 @@ Build the inventory as a saved search in the UI. SuiteQL on `LoginAudit` returne
 
 ### The recipe that was measured
 
-An ad hoc search, run without saving it, listed the token columns and exported them to CSV [E-85]:
+An ad hoc search, run without saving it, listed the day's rows with these columns and exported them to CSV [E-85]:
 
 1. Open the Login Audit Trail as an advanced search in the UI.
 2. Criteria: Date within today [E-85]. A wider date range was not measured; we recommend widening it to cover a full cycle of your scheduled jobs.

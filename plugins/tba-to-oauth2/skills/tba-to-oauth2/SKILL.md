@@ -81,6 +81,25 @@ Work through the whole repo without stopping to ask questions; record anything y
 
    Use other paths only if the user asked. Never put a credential value in either file.
 10. **Self-check before finishing.** Every locator hit is either a site, a credential, an exclusion or explained as noise. Every signer has its callers. Every `skipped` file is read or listed under "Not scanned". The inventory matches the plan.
+11. **Check the inventory mechanically.** From the repo root, run this. It parses the file with `JSON.parse` and checks required fields, types, enums, formats and unexpected fields against the schema. Fix every line it prints and run it again until it prints `inventory OK`:
+
+   ```sh
+   node -e '
+   const fs=require("fs"),[s,f]=process.argv.slice(1),S=JSON.parse(fs.readFileSync(s,"utf8")),d=JSON.parse(fs.readFileSync(f,"utf8")),E=[];
+   const t=v=>Array.isArray(v)?"array":v===null?"null":Number.isInteger(v)?"integer":typeof v;
+   const c=(x,v,p)=>{if(x.$ref)x=x.$ref.split("/").slice(1).reduce((o,k)=>o[k],S);
+   if(x.type&&t(v)!==x.type&&!(x.type==="number"&&t(v)==="integer"))return E.push(p+": expected "+x.type);
+   if(x.enum&&!x.enum.includes(v))E.push(p+": not one of "+x.enum.join(", "));
+   if(x.pattern&&!new RegExp(x.pattern).test(v))E.push(p+": bad format");
+   if(x.minLength&&v.length<x.minLength)E.push(p+": empty");if(x.minimum&&v<x.minimum)E.push(p+": below "+x.minimum);
+   if(x.minItems&&v.length<x.minItems)E.push(p+": needs "+x.minItems+"+ items");
+   if(x.items)v.forEach((e,i)=>c(x.items,e,p+"["+i+"]"));
+   if(x.properties){for(const k of x.required||[])if(!(k in v))E.push(p+": missing "+k);
+   for(const k in v)x.properties[k]?c(x.properties[k],v[k],p+"."+k):x.additionalProperties===false&&E.push(p+": unexpected "+k)}};
+   c(S,d,"inventory");console.log(E.length?E.join("\n"):"inventory OK");process.exitCode=E.length?1:0' "${CLAUDE_SKILL_DIR}/references/inventory-schema.json" docs/tba-to-oauth2-inventory.json
+   ```
+
+   If Bash is unavailable, make the same checks by reading the file against the schema.
 
 Then summarise in chat: the integrations, their outcomes, what comes first and why [E-05], [E-01], and the file paths. Offer the interview (Mode 2) for any integration that needs a design.
 

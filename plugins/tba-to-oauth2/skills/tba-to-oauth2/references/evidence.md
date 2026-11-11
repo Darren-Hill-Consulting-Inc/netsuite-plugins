@@ -456,7 +456,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 
 ## E-85 An ad hoc Login Audit Trail search, exported to CSV
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p31c
-- Finding: An advanced Login Audit Trail search in the UI, run ad hoc without saving it, with the criterion Date within today and the result columns Detail, Request URI, Token-based Access Token Name, Token-based Application Name and User Agent added, listed the day's rows with those columns filled in, and exported to a CSV file. The OAuth 2.0 rows described in [E-64] came from that export.
+- Finding: An advanced Login Audit Trail search in the UI, run ad hoc without saving it, with the criterion Date within today and the result columns Detail, Request URI, Token-based Access Token Name, Token-based Application Name and User Agent added, listed the day's rows with those columns, and exported to a CSV file. The OAuth 2.0 rows described in [E-64] came from that export.
 
 ## Refresh errors
 
