@@ -9,5 +9,12 @@
   "homepage": "https://github.com/Darren-Hill-Consulting-Inc/netsuite-plugins",
   "repository": "https://github.com/Darren-Hill-Consulting-Inc/netsuite-plugins",
   "license": "Apache-2.0",
-  "keywords": ["netsuite", "oauth2", "tba", "migration", "suitetalk"]
+  "keywords": [
+    "netsuite",
+    "oauth2",
+    "tba",
+    "migration",
+    "suitetalk"
+  ],
+  "icon": "./logo.png"
 }

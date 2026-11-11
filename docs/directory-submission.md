@@ -4,7 +4,7 @@ Prepared for the owner to submit through the developer portal (claude.ai/directo
 
 ## Before submitting
 
-- [ ] Add an icon to `plugins/tba-to-oauth2/.claude-plugin/plugin.json` (`icon`). It is fixed on the first submission.
+- [x] Icon: `plugins/tba-to-oauth2/logo.png` (the DHC "HD" mark, 180×180), set as `icon` in plugin.json. It is fixed on the first submission.
 - [ ] Optional directory fields in plugin.json: `documentationUrl`, `supportUrl`, `privacyPolicyUrl`.
 - [ ] Make the repository public, or install the Claude GitHub App for a private review.
 - [ ] Re-run `claude plugin validate --strict ./plugins/tba-to-oauth2`.
@@ -48,4 +48,4 @@ Prepared for the owner to submit through the developer portal (claude.ai/directo
 | No hooks or MCP servers | None bundled |
 | SKILL.md frontmatter valid, portable fields only | Pass |
 | Size: repo under 50 MiB, files under 5 MiB | Pass |
-| Icon | Missing: add before submitting |
+| Icon | `./logo.png` (DHC mark, 180×180 PNG) |

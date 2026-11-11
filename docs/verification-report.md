@@ -8,7 +8,7 @@ Checked on 2026-11-11 against commit `7863ce2`, the last commit before this repo
 |---|---|
 | Unit tests (`npm test`, Node 26) | 163 of 163 pass |
 | Evidence check (`node tools/check-evidence.mjs --require-cache`) | 0 errors, 0 warnings. Every `[E-nn]` resolves, and every Oracle quote matches the page fetched on 2026-11-11 |
-| Plugin validation (`claude plugin validate --strict`) | Pass. The one warning: no icon (needed before directory submission) |
+| Plugin validation (`claude plugin validate --strict`) | Pass |
 | Leak scan (`node tools/leak-scan.mjs --deny tools/.denylist --history`) | 0 findings, over the working tree and every commit, against a 34-entry deny-list built from the private probe kit |
 | Plugin evals (24 cases) | 24 of 24 pass on the final skill, one run per case |
 | Scanner recall (10 fixture repos) | Every fixture has a run with 100% recall and no false positives (details below) |
