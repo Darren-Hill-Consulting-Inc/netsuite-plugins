@@ -146,7 +146,10 @@ export async function listCerts(cfg, accessToken) {
   };
 }
 
-/** Add a certificate (body measured in E-58). Returns the new certificate ID masked, when the response carries one. */
+/**
+ * Add a certificate (body measured in E-58). `entity` and `role` are numbers, as in the measured body.
+ * Returns the new certificate ID (an ID, not a credential) and its `valid_until` when the response carries them.
+ */
 export async function addCert(cfg, accessToken, { fileName, pem, entity, role }) {
   const r = await send(cfg, {
     method: 'POST',
@@ -157,7 +160,13 @@ export async function addCert(cfg, accessToken, { fileName, pem, entity, role })
   });
   if (!r.ok) return failure(r);
   const id = r.body?.certificate_id ?? r.body?.certificateId ?? r.body?.id;
-  return { ok: true, status: r.status, ...(id ? { certificateIdMasked: maskId(String(id)) } : {}) };
+  const until = r.body?.valid_until ?? r.body?.validUntil;
+  return {
+    ok: true,
+    status: r.status,
+    ...(id ? { certificateId: String(id), certificateIdMasked: maskId(String(id)) } : {}),
+    ...(until ? { validUntil: short(until) } : {}),
+  };
 }
 
 export async function revokeCert(cfg, accessToken, certificateId) {

@@ -17,9 +17,14 @@ export const chk = (id, title, status, detail, evidence) => ({ id, title, status
 /** Prefix a tool name onto checks, for the combined verify report. */
 export const prefixed = (tool, checks) => checks.map((c) => ({ ...c, id: `${tool}.${c.id}`, title: `${tool}: ${c.title}` }));
 
-export function lifetimeCheck(lifetimeSec, evidence) {
+/** `measured` is the evidence entry that measured 3600 s for this grant, or null when none did. */
+export function lifetimeCheck(lifetimeSec, measured) {
   const title = 'Access token lifetime';
-  if (lifetimeSec === 3600) return chk('lifetime', title, 'pass', 'exp − iat 3600 s (60 minutes), as documented and measured', evidence);
+  if (lifetimeSec === 3600) {
+    return measured
+      ? chk('lifetime', title, 'pass', 'exp − iat 3600 s (60 minutes), as documented [E-25] and measured', measured)
+      : chk('lifetime', title, 'pass', 'exp − iat 3600 s (60 minutes), as documented [E-25]');
+  }
   if (lifetimeSec == null) return chk('lifetime', title, 'warn', 'could not read the lifetime from the token or expires_in');
   return chk('lifetime', title, 'warn', `lifetime ${lifetimeSec} s; Oracle documents 60 minutes`, 'E-25');
 }

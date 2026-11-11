@@ -30,7 +30,8 @@ export async function collect(s, cfg, { publicClient = false } = {}) {
   s.secret(t.accessToken);
   const checks = [
     chk('refresh', REFRESH, 'pass', `HTTP ${t.status}; fields: ${t.fields.join(', ')}`, publicClient ? 'E-36' : 'E-32'),
-    lifetimeCheck(t.lifetimeSec, 'E-29'),
+    // Access token lifetime was measured for confidential clients [E-29] and client credentials [E-41], not public clients.
+    lifetimeCheck(t.lifetimeSec, publicClient ? null : 'E-29'),
   ];
   if (publicClient) {
     checks.push(t.rotated

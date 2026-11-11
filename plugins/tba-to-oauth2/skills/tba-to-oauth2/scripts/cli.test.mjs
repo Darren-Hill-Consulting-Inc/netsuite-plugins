@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -47,6 +48,7 @@ const KEY_PATH = write('key.pem', KEY_PEM);
 const CERT_PEM = SKIP_OPENSSL ? null : makeCert(RSA.privateKey).pem;
 const CERT_PATH = CERT_PEM ? write('cert.pem', CERT_PEM) : null;
 const CERT_AND_KEY_PATH = CERT_PEM ? write('integration-2027.pem', `${CERT_PEM}${KEY_PEM}`) : null;
+const CERT_NOT_AFTER = CERT_PEM ? new Date(new crypto.X509Certificate(CERT_PEM).validTo).toISOString().slice(0, 10) : '2027-11-11';
 
 const SECRETS = [CLIENT_SECRET, REFRESH_TOKEN, ROTATED_REFRESH_TOKEN, ACCESS_TOKEN, CLIENT_ID, ENTITY_NAME, KEY_PEM.split('\n')[1]];
 
@@ -81,7 +83,7 @@ const DEFAULTS = {
     ? json(200, { links: [], count: 1, hasMore: false, items: [{ links: [], ok: '1' }], offset: 0, totalResults: 1 })
     : json(401, { title: 'Unauthorized' })),
   'GET certs': (r) => (authed(r) ? json(200, CERT_LIST) : json(401, { title: 'Unauthorized' })),
-  'POST certs': (r) => (authed(r) ? json(200, { certificate_id: NEW_CERT_ID }) : json(401, { title: 'Unauthorized' })),
+  'POST certs': (r) => (authed(r) ? json(200, { certificate_id: NEW_CERT_ID, valid_until: CERT_NOT_AFTER, revoked: false }) : json(401, { title: 'Unauthorized' })),
   'POST revoke': (r) => (authed(r) ? { status: 200, body: 'Successfully revoked', type: 'text/plain' } : json(401, { title: 'Unauthorized' })),
 };
 
@@ -173,7 +175,10 @@ test('m2m-check: 200 passes mint, lifetime, select1 and list-certs', async () =>
     for (const t of ['Token request (client credentials)', 'Access token lifetime', 'REST SuiteQL SELECT 1', 'List certificates']) {
       assert.equal(row(r.out, t).status, 'pass', t);
     }
-    assert.match(row(r.out, 'Access token lifetime').detail, /3600/);
+    const life = row(r.out, 'Access token lifetime');
+    assert.match(life.detail, /3600/);
+    assert.match(life.detail, /documented \[E-25\]/);
+    assert.equal(life.evidence, '[E-41]');
     const tok = new URLSearchParams(mock.to('token')[0].body);
     assert.equal(tok.get('grant_type'), 'client_credentials');
     assert.equal(tok.get('client_assertion_type'), 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer');
@@ -266,6 +271,7 @@ test('refresh-check confidential: no refresh_token in the response passes as exp
     const rot = row(r.out, 'Refresh token rotation');
     assert.equal(rot.status, 'pass');
     assert.match(rot.detail, /refresh token not rotated \(expected for confidential clients\)/);
+    assert.equal(row(r.out, 'Access token lifetime').evidence, '[E-29]');
     const tok = mock.to('token')[0];
     assert.match(tok.headers.authorization, /^Basic /);
     assert.equal(new URLSearchParams(tok.body).get('client_id'), null);
@@ -330,6 +336,9 @@ test('refresh-check --public confirmed: refreshes once, never shows the new toke
     assert.equal(mock.to('token').length, 1);
     assert.equal(new URLSearchParams(mock.to('token')[0].body).get('client_id'), CLIENT_ID);
     assert.equal(row(r.out, 'Refresh token rotation').status, 'pass');
+    const life = row(r.out, 'Access token lifetime');
+    assert.doesNotMatch(life.detail + life.evidence, /E-29|E-41/);
+    assert.match(life.detail, /\[E-25\]/);
     const chain = row(r.out, 'Refresh chain after this test');
     assert.equal(chain.status, 'warn');
     assert.match(chain.detail, /authorize again/);
@@ -395,20 +404,57 @@ test('rotate-cert add --confirm with a wrong typed account sends nothing', { ski
 test('rotate-cert add --confirm with the right account sends one POST with the four body keys and no key', { skip: SKIP_OPENSSL }, async () => {
   const mock = await startMock();
   try {
-    const r = await call(rotateCert, [...addArgs(), '--confirm'], { mock, isTTY: true, typed: ACCOUNT });
+    const out = path.join(TMP, 'add-report.md');
+    const r = await call(rotateCert, [...addArgs(), '--confirm', '--out', out], { mock, isTTY: true, typed: ACCOUNT });
     assert.equal(r.code, 0, r.out + r.err);
     const posts = mock.to('certs').filter((q) => q.method === 'POST');
     assert.equal(posts.length, 1);
     const body = JSON.parse(posts[0].body);
     assert.deepEqual(Object.keys(body).sort(), ['entity', 'fileContent', 'fileName', 'role']);
     assert.equal(body.fileName, 'integration-2027.pem');
-    assert.equal(body.entity, '42');
-    assert.equal(body.role, '3');
+    assert.equal(body.entity, 42);
+    assert.equal(body.role, 3);
     assert.match(body.fileContent, /^-----BEGIN CERTIFICATE-----/);
     assert.doesNotMatch(body.fileContent, /PRIVATE KEY/);
     assert.equal(row(r.out, 'Add certificate').status, 'pass');
     assert.match(row(r.out, 'Add certificate').detail, /FAKE…0003/);
-    assert.ok(!r.out.includes(NEW_CERT_ID));
+    assert.equal(row(r.out, 'Added certificate validity').status, 'pass');
+    // Ruling R11: the new ID prints in full once, to the terminal only, with the kid instruction.
+    assert.match(r.out, new RegExp(`New certificate ID: ${NEW_CERT_ID}\\n.*kid`));
+    const file = fs.readFileSync(out, 'utf8');
+    assert.ok(!file.includes(NEW_CERT_ID));
+    assert.match(file, /FAKE…0003/);
+    for (const id of [CERT_ID, REVOKED_CERT_ID]) assert.ok(!r.out.includes(id) && !file.includes(id), id);
+  } finally {
+    await mock.close();
+  }
+});
+
+test('rotate-cert add warns when the returned valid_until is earlier than the certificate notAfter', { skip: SKIP_OPENSSL }, async () => {
+  const mock = await startMock({ 'POST certs': (r) => (authed(r) ? json(200, { certificate_id: NEW_CERT_ID, valid_until: '2026-12-01' }) : json(401, {})) });
+  try {
+    const r = await call(rotateCert, [...addArgs(), '--confirm'], { mock, isTTY: true, typed: ACCOUNT });
+    assert.equal(r.code, 0, r.out + r.err);
+    const v = row(r.out, 'Added certificate validity');
+    assert.equal(v.status, 'warn');
+    assert.match(v.detail, /2026-12-01/);
+    assert.match(v.detail, new RegExp(CERT_NOT_AFTER));
+    assert.match(v.detail, /\[E-49\].*\[E-50\]/);
+  } finally {
+    await mock.close();
+  }
+});
+
+test('rotate-cert add refuses a non-numeric --entity or --role with no requests', { skip: SKIP_OPENSSL }, async () => {
+  const mock = await startMock();
+  try {
+    const bad = [...acct, 'add', '--cert', CERT_AND_KEY_PATH, '--entity', 'jsmith', '--role', '3', '--confirm'];
+    const r = await call(rotateCert, bad, { mock, isTTY: true, typed: ACCOUNT });
+    assert.equal(r.code, 2);
+    assert.match(r.err, /internal ID/);
+    const bad2 = [...acct, 'add', '--cert', CERT_AND_KEY_PATH, '--entity', '42', '--role', '3x', '--confirm'];
+    assert.equal((await call(rotateCert, bad2, { mock, isTTY: true, typed: ACCOUNT })).code, 2);
+    assert.equal(mock.requests.length, 0);
   } finally {
     await mock.close();
   }
@@ -608,7 +654,13 @@ test('no CLI prints or writes a secret, token, key or unmasked client ID', { ski
       const r = await call(run, [...argv, '--out', out], { mock, isTTY: opts.isTTY, typed: opts.typed });
       const texts = { stdout: r.out, stderr: r.err, file: fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '' };
       assert.ok(texts.file.length > 0, `run ${i} wrote no --out file`);
+      // The assertion this run actually signed and sent.
+      const assertions = mock.to('token').map((q) => new URLSearchParams(q.body).get('client_assertion')).filter(Boolean);
       for (const [where, text] of Object.entries(texts)) {
+        for (const a of assertions) {
+          assert.ok(!text.includes(a), `run ${i} leaked the signed assertion to ${where}`);
+          assert.ok(!text.includes(a.split('.')[2]), `run ${i} leaked the assertion signature to ${where}`);
+        }
         for (const s of SECRETS) assert.ok(!text.includes(s), `run ${i} leaked ${s.slice(0, 12)}… to ${where}`);
         assert.doesNotMatch(text, /PRIVATE KEY/, `run ${i} printed a key block to ${where}`);
       }

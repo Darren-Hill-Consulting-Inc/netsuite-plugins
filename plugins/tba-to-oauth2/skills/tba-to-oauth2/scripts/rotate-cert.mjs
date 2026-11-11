@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { addCert, listCerts, mintM2M, revokeCert, tokenErrorDetail } from './lib/netsuite.mjs';
-import { maskId } from './lib/mask.mjs';
+import { maskId, redact } from './lib/mask.mjs';
 import { chk, runCli, runIfMain } from './lib/cli.mjs';
 import { MAX_ACTIVE } from './m2m-check.mjs';
 
@@ -65,12 +65,27 @@ function readCertificate(s, file) {
   s.secret(...(text.match(/-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z0-9 ]*PRIVATE KEY-----/g) ?? []));
   const block = text.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/)?.[0];
   if (!block) return { error: '--cert must be a PEM file with a BEGIN CERTIFICATE block' };
+  let notAfter;
   try {
-    new crypto.X509Certificate(block);
+    notAfter = new Date(new crypto.X509Certificate(block).validTo);
   } catch {
     return { error: 'the certificate block in --cert could not be parsed' };
   }
-  return { pem: `${block}\n`, fileName: path.basename(file) };
+  return { pem: `${block}\n`, fileName: path.basename(file), notAfter };
+}
+
+const day = (d) => d.toISOString().slice(0, 10);
+
+/** Compare the validity NetSuite returned with the certificate's own notAfter (two-year cap: E-49, E-50). */
+function validityCheck(validUntil, notAfter) {
+  const title = 'Added certificate validity';
+  if (!validUntil) return chk('validity', title, 'warn', 'the response had no valid_until; check it with rotate-cert list [E-57]');
+  const until = Date.parse(validUntil);
+  if (!Number.isFinite(until)) return chk('validity', title, 'warn', `valid_until "${validUntil}" could not be read as a date; compare it with the certificate's notAfter ${day(notAfter)}`);
+  if (until < notAfter.getTime() - DAY) {
+    return chk('validity', title, 'warn', `valid_until ${validUntil} is earlier than the certificate's notAfter ${day(notAfter)}. NetSuite shortens certificates longer than two years [E-49], and does so silently [E-50]; plan rotation from ${validUntil}`);
+  }
+  return chk('validity', title, 'pass', `valid_until ${validUntil} matches the certificate's notAfter ${day(notAfter)}`, 'E-57');
 }
 
 async function add(s, cfg) {
@@ -78,11 +93,14 @@ async function add(s, cfg) {
   const entity = s.flag('--entity');
   const role = s.flag('--role');
   if (!file || !entity || !role) return s.refuse(`add needs --cert, --entity and --role. ${USAGE}`);
+  // The measured working body sent entity and role as JSON numbers [E-58].
+  if (!/^\d+$/.test(entity) || !/^\d+$/.test(role)) return s.refuse('--entity and --role must each be a numeric internal ID');
   const cert = readCertificate(s, file);
   if (cert.error) return s.refuse(cert.error);
   if (!(await s.confirmChange(cfg, `add certificate ${cert.fileName} to the integration's client credentials mapping`))) return 2;
 
   const checks = [];
+  let newId;
   const at = await token(s, cfg, checks);
   if (at) {
     const active = await list(s, cfg, at, checks);
@@ -90,13 +108,20 @@ async function add(s, cfg) {
       checks.find((c) => c.id === 'slots').status = 'fail';
       checks.push(chk('add', 'Add certificate', 'skip', 'not sent: no free slot'));
     } else if (active !== null) {
-      const r = await addCert(cfg, at, { fileName: cert.fileName, pem: cert.pem, entity, role });
-      checks.push(r.ok
-        ? chk('add', 'Add certificate', 'pass', `HTTP ${r.status}; new certificate ID ${r.certificateIdMasked ?? '(not in the response)'}. Its full ID is on the integration's client credentials mapping [E-78]. Switch the integration to the new key and use that ID as kid [E-59], then revoke the old certificate [E-60]. Check valid_until with rotate-cert list; whether the two-year cap applies to added certificates was not measured [E-49], [E-57]`)
-        : chk('add', 'Add certificate', 'fail', `${r.error}${r.status === 500 ? '. A wrong request body returned HTTP 500 [E-58]' : ''}`));
+      const r = await addCert(cfg, at, { fileName: cert.fileName, pem: cert.pem, entity: Number(entity), role: Number(role) });
+      if (r.ok) {
+        newId = r.certificateId;
+        checks.push(chk('add', 'Add certificate', 'pass', `HTTP ${r.status}; new certificate ID ${r.certificateIdMasked ?? '(not in the response; it is on the integration\'s client credentials mapping [E-78])'}. Switch the integration to the new key and use that ID as kid [E-59], then revoke the old certificate [E-60]`));
+        checks.push(validityCheck(r.validUntil, cert.notAfter));
+      } else {
+        checks.push(chk('add', 'Add certificate', 'fail', `${r.error}${r.status === 500 ? '. A wrong request body returned HTTP 500 [E-58]' : ''}`));
+      }
     }
   }
-  return s.finish('rotate-cert add', cfg, checks);
+  const code = s.finish('rotate-cert add', cfg, checks);
+  // Ruling R11: the new ID prints in full once, to the terminal only; the report and --out keep it masked.
+  if (newId) s.stdout.write(redact(`\nNew certificate ID: ${newId}\nUse it as the assertion's kid once the integration signs with the new key [E-59].\n`, s.secrets));
+  return code;
 }
 
 async function revoke(s, cfg) {
