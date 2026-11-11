@@ -1,4 +1,4 @@
-// Xero accounting API, OAuth 1.0a partner-app style signing.
+// Legacy accounting API client, signed with our OAuth 1.0a helper below.
 // Kept for the UK entity's quarterly VAT pull until that moves to the new ledger.
 const crypto = require('crypto');
 const axios = require('axios');
