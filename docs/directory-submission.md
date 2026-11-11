@@ -27,11 +27,13 @@ Sources, read 2026-11-11:
 
    Select **Validate**, and fix any finding marked **Blocking** before going on. A validation result covers one commit, so validate again after any push.
 3. **Listing details:** the portal reads these from the repository; nothing is typed here. Check that they show:
-   - name `tba-to-oauth2`;
-   - the short description from `plugin.json`;
+   - display name **TBA to OAuth 2.0** (from `displayName`), published by Darren-Hill-Consulting-Inc via GitHub;
+   - the short description and keywords from `plugin.json`;
    - the README as the long description;
-   - the icon `logo.png`;
-   - documentation, support and privacy links to the tool page, GitHub issues and the tool page's data-handling section.
+   - listed on Claude Code, Cowork and the Claude apps (keep all three; without Bash, the skill hands the user the commands to run);
+   - links: privacy (tool page `#data-handling`), support (GitHub issues), homepage and documentation (tool page), repository, and terms of service (`LICENSE`).
+
+   The "What people get" card says **No local code execution**. That counts hooks, MCP servers and `bin/` only, not scripts that SKILL.md tells Claude to run, so it's inaccurate for this plugin. Leave that card unmarked and raise it with the reviewer (see "Points a reviewer may raise").
 
    To change any of these, edit `plugin.json` or the README, merge, and validate again.
 4. **Data handling:** the answers are in the next section.
@@ -59,7 +61,9 @@ A version can be held for a reviewer. A hold isn't a rejection. If one comes up,
 - **Privacy policy** (policy 3A). The privacy link points to the tool page's data-handling section, which covers collection (none by the publisher), use and retention.
 - **Testing account with sample data** (policy 3D). A NetSuite account can't be shared. Ten synthetic fixture repositories with answer keys are in [`test-repos/tba-to-oauth2/`](../test-repos/tba-to-oauth2). The scan, plan and reference modes need no account, and `tools/run-scanner-evals.mjs` scores the scanner against those fixtures.
 - **Example prompts** (policy 3E). The README's "What it does" table gives one prompt for each of the four modes.
-- **Name.** `tba-to-oauth2` is descriptive. It contains no Oracle mark, and the independence note is in the README, SKILL.md and NOTICE.
+- **Name.** `tba-to-oauth2` and the display name "TBA to OAuth 2.0" are descriptive. Neither contains an Oracle mark, and the independence note is in the README, SKILL.md and NOTICE.
+- **The "No local code execution" label.** The listing shows it because the plugin has no hooks, MCP servers or `bin/`. But SKILL.md does tell Claude to run bundled Node scripts through Bash: `scan-hints` (local only) and the verify scripts (which call the user's NetSuite account). Each run goes through the user's own Bash permission. Ask that the label say so, so that users see what the README discloses.
+- **Scripts from organizations that aren't Verified.** Validation notes that the directory will later accept scripts only from Verified organizations. The plugin's scripts are plain, readable ES modules with no dependencies, plus their tests.
 
 ## After submitting
 
