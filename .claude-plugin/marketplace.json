@@ -1,0 +1,17 @@
+{
+  "name": "darren-hill-consulting",
+  "owner": {
+    "name": "Darren Hill Consulting Inc.",
+    "url": "https://darrenhillconsulting.ca"
+  },
+  "description": "NetSuite tooling from Darren Hill Consulting Inc.",
+  "plugins": [
+    {
+      "name": "tba-to-oauth2",
+      "source": "./plugins/tba-to-oauth2",
+      "description": "Evidence-backed guidance and helper scripts for migrating NetSuite integrations from Token-Based Authentication (TBA) to OAuth 2.0.",
+      "category": "development",
+      "tags": ["netsuite", "oauth2", "migration"]
+    }
+  ]
+}

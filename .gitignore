@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+tools/.cache/
+tools/.denylist*
+**/eval-out/
+evals/results/
