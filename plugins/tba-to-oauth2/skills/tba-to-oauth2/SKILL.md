@@ -4,7 +4,7 @@ description: Migrate NetSuite integrations from Token-Based Authentication (TBA)
 license: Apache-2.0
 metadata:
   author: "Darren Hill Consulting Inc."
-  version: "0.1.0"
+  version: "0.1.1"
   measured-on: "NetSuite 2026.2"
 ---
 
