@@ -98,6 +98,8 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 | E-68 | The trail records authentication, not the API outcome |
 | E-69 | SuiteQL on LoginAudit is too limited for a TBA inventory |
 | E-85 | An ad hoc Login Audit Trail search exported to CSV showed the token columns |
+| E-86 | The Script Debugger ran ad hoc SuiteScript 2.1 |
+| E-87 | N/search has no Login Audit Trail search type |
 | E-70 | Oracle: an expired refresh token returns `invalid_grant`; restart at Step One |
 
 ## Timeline: TBA and NLAuth
@@ -457,6 +459,14 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 ## E-85 An ad hoc Login Audit Trail search, exported to CSV
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p31c
 - Finding: An advanced Login Audit Trail search in the UI, run ad hoc without saving it, with the criterion Date within today and the result columns Detail, Request URI, Token-based Access Token Name, Token-based Application Name and User Agent added, listed the day's rows with those columns, and exported to a CSV file. The OAuth 2.0 rows described in [E-64] came from that export.
+
+## E-86 The Script Debugger ran ad hoc SuiteScript 2.1
+- Type: Measured — NetSuite 2026.2, test account, November 2026 — p43
+- Finding: With API version 2.1 selected, ad hoc code pasted into the Script Debugger (a `require` callback written as an arrow function, using template literals) ran and wrote to the Execution Log.
+
+## E-87 N/search has no Login Audit Trail search type
+- Type: Measured — NetSuite 2026.2, test account, November 2026 — p44
+- Finding: `search.create({ type: 'loginaudittrail', … })` failed with `INVALID_RCRD_TYPE`, "The record type [LOGINAUDITTRAIL] is invalid." Listing `search.Type` for keys containing LOGIN or AUDIT returned only `GL_LINES_AUDIT_LOG`. So the Login Audit Trail can't be searched from SuiteScript this way; together with [E-69], the UI search and CSV export [E-85] is the route that worked.
 
 ## Refresh errors
 

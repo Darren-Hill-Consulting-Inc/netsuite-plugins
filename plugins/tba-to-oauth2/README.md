@@ -74,7 +74,7 @@ Some commands change your account: adding or revoking a certificate, and testing
 
 - It finds only what is in the repo. iPaaS connectors and vendor-hosted integrations are listed as things to check in the Login Audit Trail.
 - Role advice uses Oracle's documented permissions. Least-privilege roles were not measured.
-- The Script Debugger snippet for the Login Audit Trail is pending verification. Until it is verified, the skill uses the UI search and CSV export recipe.
+- The Login Audit Trail can't be searched from SuiteScript [E-87], so finding integrations outside the repo uses a search you run in the NetSuite UI and export to CSV [E-85].
 - Measured on NetSuite 2026.2. Re-check after 2027.1.
 
 ## Help with a bigger migration

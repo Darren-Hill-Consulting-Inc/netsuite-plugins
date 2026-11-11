@@ -7,7 +7,7 @@ How the skill touches the code, the user's machine and the NetSuite account. Use
 | Local, no account | Reading the repo; `scan-hints.mjs`; `check-cert.mjs`; `check-assertion.mjs`; reading a Login Audit Trail CSV the user exported | Available |
 | Local Node script, with the integration's own credentials | `m2m-check.mjs`, `refresh-check.mjs`, `rotate-cert.mjs`, `verify.mjs` | Available |
 | NetSuite MCP | Nothing in v1 | Not used |
-| Script Debugger | The Login Audit Trail snippet in [debugger-snippets.md](debugger-snippets.md) | Pending verification |
+| Script Debugger | No snippets in v1; runs ad hoc 2.1 [E-86]. The Login Audit Trail can't be searched from SuiteScript [E-87] | Available, unused |
 
 Script paths below are under `${CLAUDE_SKILL_DIR}/scripts/`. Every script prints its usage when run with no arguments.
 
@@ -67,9 +67,7 @@ v1 makes no MCP lookups. Which account data a NetSuite MCP connection can reach 
 
 ## Script Debugger
 
-For in-account reads that the local routes can't do, chiefly the Login Audit Trail search. Snippets are in [debugger-snippets.md](debugger-snippets.md) and are **pending verification**: whether the debugger runs ad hoc SuiteScript 2.1 this way has not been tested. Offer the measured UI recipe first [E-85], and the snippet as an unverified alternative.
-
-Rules: the snippet runs as the user's own login and role against the real account; it is read-only; it logs counts and masked values only; it never contains a key, secret, token or password.
+The debugger runs ad hoc SuiteScript 2.1 [E-86], but v1 has no snippet that needs it. The Login Audit Trail, the main candidate, can't be searched from SuiteScript [E-87]; use the UI search and CSV export [E-85]. If you write a snippet for another read, follow the rules in [debugger-snippets.md](debugger-snippets.md).
 
 ## When the scripts can't run here
 

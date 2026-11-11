@@ -165,7 +165,7 @@ Summary; details in [references/routes.md](references/routes.md).
 - **Local, no account:** the repo, `scan-hints`, `check-cert`, `check-assertion`, and a Login Audit Trail CSV the user exported [E-85].
 - **Local Node scripts with the integration's own credentials:** `m2m-check`, `refresh-check`, `rotate-cert`, `verify`.
 - **NetSuite MCP:** not used in v1. If one is connected you may mention it, but ask the user for the facts instead of querying it.
-- **Script Debugger:** a read-only Login Audit Trail snippet in [references/debugger-snippets.md](references/debugger-snippets.md), **pending verification**. Offer the measured UI search and CSV export first [E-85].
+- **Script Debugger:** runs ad hoc 2.1 [E-86], but v1 has no snippets. The Login Audit Trail can't be searched from SuiteScript [E-87]; use the UI search and CSV export [E-85]. Rules for any snippet: [references/debugger-snippets.md](references/debugger-snippets.md).
 
 ## Without Bash or network access
 
