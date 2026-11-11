@@ -1,0 +1,14 @@
+[
+  { "id": "section_158921905537", "title": "Authentication release notices (2027.1)", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158921905537.html" },
+  { "id": "section_0525020842", "title": "Preparing for Token-based Authentication (TBA) End of Support", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_0525020842.html" },
+  { "id": "section_0525022007", "title": "What to Do to Prepare for the End of Support", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_0525022007.html" },
+  { "id": "section_158081952044", "title": "OAuth 2.0 Authorization Code Grant Flow: Step Two POST Request to the Token Endpoint", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158081952044.html" },
+  { "id": "section_158082518856", "title": "Refresh Token POST Request to the Token Endpoint", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158082518856.html" },
+  { "id": "subsect_162755332391", "title": "Certificate Conditions", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/subsect_162755332391.html" },
+  { "id": "section_162790605110", "title": "Request Token (JWT) Structure", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html" },
+  { "id": "article_92130837826", "title": "OAuth 2.0 Client Credentials Certificate Rotation Endpoint", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/article_92130837826.html" },
+  { "id": "chapter_157769826287", "title": "OAuth 2.0", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_157769826287.html" },
+  { "id": "article_2104046421", "title": "SOAP Removal Plans FAQ", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/article_2104046421.html" },
+  { "id": "article_2095713813", "title": "SOAP Web Services to REST Web Services Upgrade Guide", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/article_2095713813.html" },
+  { "id": "section_157771510070", "title": "Set Up OAuth 2.0 Roles", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_157771510070.html" }
+]
