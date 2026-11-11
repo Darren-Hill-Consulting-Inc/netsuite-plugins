@@ -6,7 +6,11 @@
 //   3. score docs/tba-to-oauth2-inventory.json against the fixture's ANSWER_KEY.json;
 // then write eval-out/scanner-<timestamp>.json and print a table.
 //
-// Every run is a billed model call on your account.
+// Every run is a billed model call on your account. Before any run, the script checks
+// `claude auth status` (with the CLAUDE_CONFIG_DIR it was started with, which every
+// child inherits) and refuses with exit 2 unless the account's email or orgName contains
+// the value of TBA_EVAL_EXPECT_ACCOUNT. Set that variable in your shell, not in the repo:
+//   CLAUDE_CONFIG_DIR=<config dir> TBA_EVAL_EXPECT_ACCOUNT=<your domain> node tools/run-scanner-evals.mjs
 //
 // Usage: node tools/run-scanner-evals.mjs [--runs 3] [--fixture <name>] [--concurrency 3]
 //          [--max-budget-usd 5] [--timeout-min 30] [--model <model>] [--keep-temp]
@@ -15,7 +19,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { scoreInventory } from './score-inventory.mjs';
 
@@ -40,6 +44,33 @@ export function copyFixture(src, dest) {
     recursive: true,
     filter: (p) => path.basename(p) !== 'ANSWER_KEY.json',
   });
+}
+
+// Returns null when `claude auth status` output shows the expected account, else why not.
+export function accountMismatch(statusText, expect) {
+  if (!expect) return 'TBA_EVAL_EXPECT_ACCOUNT is not set; set it to part of the email or org name the runs must bill to';
+  let status;
+  try { status = JSON.parse(statusText); } catch { return 'could not parse `claude auth status` output'; }
+  if (!status.loggedIn) return 'claude is not logged in for this config dir';
+  const fields = [status.email, status.orgName].filter((v) => typeof v === 'string');
+  if (!fields.some((v) => v.includes(expect))) return `logged-in account doesn't match TBA_EVAL_EXPECT_ACCOUNT`;
+  return null;
+}
+
+function childEnv() {
+  const env = { ...process.env };
+  for (const v of PARENT_SESSION_VARS) delete env[v];
+  return env;
+}
+
+function checkAccount() {
+  let out = '';
+  try {
+    out = execFileSync('claude', ['auth', 'status'], { env: childEnv(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) {
+    out = e.stdout ?? '';
+  }
+  return accountMismatch(out, process.env.TBA_EVAL_EXPECT_ACCOUNT);
 }
 
 function parseArgs(argv) {
@@ -80,8 +111,7 @@ function runClaude(cwd, opts) {
     '--max-budget-usd', String(opts.maxBudgetUsd),
   ];
   if (opts.model) args.push('--model', opts.model);
-  const env = { ...process.env };
-  for (const v of PARENT_SESSION_VARS) delete env[v];
+  const env = childEnv();
 
   return new Promise((resolve) => {
     const child = spawn('claude', args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -155,7 +185,7 @@ const pct = (x) => `${(x * 100).toFixed(0)}%`;
 const money = (x) => `$${x.toFixed(2)}`;
 
 function table(fixtures, results) {
-  const rows = [['FIXTURE', 'PASS', 'RECALL min/mean', 'DECOYS', 'OUTCOME', 'EXTRAS', 'COST']];
+  const rows = [['FIXTURE', 'PASS', 'RECALL min/mean', 'NO-.ENV min', 'BLOCKED', 'DECOYS', 'OUTCOME', 'EXTRAS', 'COST']];
   for (const f of fixtures) {
     const rs = results.filter((r) => r.fixture === f);
     const recalls = rs.map((r) => r.recall);
@@ -163,6 +193,8 @@ function table(fixtures, results) {
       f,
       `${rs.filter((r) => r.pass).length}/${rs.length}`,
       `${pct(Math.min(...recalls))}/${pct(recalls.reduce((a, b) => a + b, 0) / rs.length)}`,
+      pct(Math.min(...rs.map((r) => r.recallWithoutEnv))),
+      String(rs.reduce((a, r) => a + r.blockedReported.length, 0)),
       String(rs.reduce((a, r) => a + r.decoysFlagged.length, 0)),
       String(rs.reduce((a, r) => a + r.outcomeMismatches.length, 0)),
       String(rs.reduce((a, r) => a + r.unkeyedExtras.length, 0)),
@@ -179,6 +211,13 @@ async function main() {
   const fixtures = opts.fixture ? all.filter((n) => n === opts.fixture) : all;
   if (fixtures.length === 0) throw new Error(`no fixture named ${opts.fixture}; have ${all.join(', ')}`);
 
+  const mismatch = checkAccount();
+  if (mismatch) {
+    console.error(`run-scanner-evals: refusing to run: ${mismatch} (CLAUDE_CONFIG_DIR=${process.env.CLAUDE_CONFIG_DIR ?? 'unset'})`);
+    process.exitCode = 2;
+    return;
+  }
+
   const total = fixtures.length * opts.runs;
   console.error(`WARNING: this makes ${total} billed claude run(s) on your account `
     + `(${fixtures.length} fixture(s) x ${opts.runs} run(s)), each capped at ${money(opts.maxBudgetUsd)}, `
@@ -186,7 +225,7 @@ async function main() {
 
   const tasks = fixtures.flatMap((f) => Array.from({ length: opts.runs }, (_, i) => async () => {
     const r = await runOne(f, i + 1, opts);
-    console.error(`${r.pass ? 'PASS' : 'FAIL'} ${f} run ${r.run}: recall ${pct(r.recall)}, `
+    console.error(`${r.pass ? 'PASS' : 'FAIL'} ${f} run ${r.run}: recall ${pct(r.recall)} (no .env ${pct(r.recallWithoutEnv)}), blocked ${r.blockedReported.length}, `
       + `decoys ${r.decoysFlagged.length}, outcome ${r.outcomeMismatches.length}, `
       + `${r.costUsd == null ? 'cost ?' : money(r.costUsd)}, ${r.durationS}s`
       + (r.inventoryError ? `, ${r.inventoryError}` : '') + (r.claudeError ? `, claude: ${r.claudeError}` : ''));

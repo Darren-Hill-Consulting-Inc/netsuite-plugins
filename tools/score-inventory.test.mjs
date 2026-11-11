@@ -179,3 +179,37 @@ test('a missing or malformed inventory scores zero instead of throwing', () => {
     assert.equal(r.pass, false);
   }
 });
+
+test('key entries in a file listed under notInspected are blockedReported, not misses', () => {
+  const r = scoreInventory(inventory((inv) => {
+    inv.integrations[0].credentialLocations = [];
+    inv.notInspected = [{ path: '.env', reason: 'read denied by a permission rule' }];
+  }), KEY);
+  assert.deepEqual(r.missed, []);
+  assert.deepEqual(r.blockedReported, [
+    { file: '.env', line: 2, name: 'NS_CONSUMER_KEY' },
+    { file: '.env', line: 3, name: 'NS_CONSUMER_SECRET' },
+  ]);
+  assert.equal(r.recall, 1);
+  assert.equal(r.recallWithoutEnv, 1);
+  assert.equal(r.pass, true);
+});
+
+test('a blocked file that is not listed under notInspected is still a miss', () => {
+  const r = scoreInventory(inventory((inv) => {
+    inv.integrations[0].credentialLocations = [];
+    inv.notInspected = [{ path: 'config/other.json', reason: 'denied' }];
+  }), KEY);
+  assert.deepEqual(r.blockedReported, []);
+  assert.equal(r.missed.length, 2);
+  assert.equal(r.recall, 3 / 5);
+  // Leaving .env files out, every other key entry was found.
+  assert.equal(r.recallWithoutEnv, 1);
+  assert.equal(r.pass, false);
+});
+
+test('recallWithoutEnv leaves out key entries in .env files only', () => {
+  const r = scoreInventory(inventory((inv) => { inv.integrations[0].sites.shift(); }), KEY);
+  assert.equal(r.recall, 4 / 5);
+  assert.equal(r.recallWithoutEnv, 2 / 3);
+});

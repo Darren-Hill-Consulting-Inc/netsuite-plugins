@@ -4,7 +4,11 @@
 // - A reported entry matches a key entry in the same file within 2 lines. Sites match
 //   sites and credentials match credentials; each reported entry satisfies at most one
 //   key entry (closest line first, same kind breaking ties).
-// - recall = matched key sites and credentials / all key sites and credentials.
+// - A key entry with no match, in a file the inventory lists under `notInspected`
+//   (the scan couldn't read it and said so), is blockedReported: reported separately,
+//   not a miss. A blocked file the inventory doesn't list is still a miss.
+// - recall = matched key sites and credentials / (all of them - blockedReported).
+//   recallWithoutEnv is the same over key entries outside `.env*` files.
 // - Each key integration is paired with the inventory integration holding most of its
 //   matched sites; a different outcome, or no such integration, is an outcome mismatch.
 // - A reported site or credential that matches no key entry is a false positive
@@ -61,12 +65,21 @@ export function scoreInventory(inventory, key) {
   const sitesMatch = match(keySites, repSites);
   const credsMatch = match(keyCreds, repCreds);
 
-  const missed = [
-    ...keySites.filter((_, i) => sitesMatch.keyTo[i] === -1).map(site),
-    ...keyCreds.filter((_, i) => credsMatch.keyTo[i] === -1).map(credential),
+  const notInspected = new Set(asArray(inventory?.notInspected).map((n) => n?.path).filter((p) => typeof p === 'string'));
+  const keyed = [
+    ...keySites.map((e, i) => ({ entry: site(e), found: sitesMatch.keyTo[i] !== -1 })),
+    ...keyCreds.map((e, i) => ({ entry: credential(e), found: credsMatch.keyTo[i] !== -1 })),
   ];
-  const total = keySites.length + keyCreds.length;
-  const recall = total === 0 ? 1 : (total - missed.length) / total;
+  const blocked = (k) => !k.found && notInspected.has(k.entry.file);
+  const missed = keyed.filter((k) => !k.found && !blocked(k)).map((k) => k.entry);
+  const blockedReported = keyed.filter(blocked).map((k) => k.entry);
+  const recallOf = (entries) => {
+    const counted = entries.filter((k) => !blocked(k));
+    return counted.length === 0 ? 1 : counted.filter((k) => k.found).length / counted.length;
+  };
+  const isEnvFile = (file) => file.split('/').pop().startsWith('.env');
+  const recall = recallOf(keyed);
+  const recallWithoutEnv = recallOf(keyed.filter((k) => !isEnvFile(k.entry.file)));
 
   const outcomeMismatches = [];
   key.integrations.forEach((k, ki) => {
@@ -99,7 +112,9 @@ export function scoreInventory(inventory, key) {
 
   return {
     recall,
+    recallWithoutEnv,
     missed,
+    blockedReported,
     decoysFlagged,
     unkeyedExtras,
     outcomeMismatches,

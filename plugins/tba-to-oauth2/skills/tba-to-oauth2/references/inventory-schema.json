@@ -4,7 +4,7 @@
   "description": "docs/tba-to-oauth2-inventory.json: every NetSuite authentication site found in a repo, grouped into integrations. Paths are relative to the repo root with forward slashes; lines are 1-based and follow detection-patterns.md section 6. Never put a credential value in this file: names and locations only.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["integrations", "excluded", "outsideRepo"],
+  "required": ["integrations", "excluded", "outsideRepo", "notInspected"],
   "properties": {
     "integrations": {
       "type": "array",
@@ -21,6 +21,19 @@
           "file": { "$ref": "#/$defs/file" },
           "line": { "$ref": "#/$defs/line" },
           "why": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "notInspected": {
+      "description": "Files the scan could not read, each with the reason: a permission or policy denial (such as a rule that blocks .env files), unreadable, binary or too large. The developer checks these by hand; the plan's Not inspected section lists them.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "reason"],
+        "properties": {
+          "path": { "$ref": "#/$defs/file" },
+          "reason": { "type": "string", "minLength": 1 }
         }
       }
     },

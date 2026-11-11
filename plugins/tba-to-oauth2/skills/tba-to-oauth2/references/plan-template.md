@@ -137,6 +137,10 @@ What it won't show:
 - A Success row means authentication worked, not that the API call did [E-68].
 - SuiteQL can't do this search: `LoginAudit` there has no token columns [E-69].
 
+## Not inspected
+
+<From the inventory's notInspected: each file the scan could not read (a permission or policy denial, or unreadable), with the reason, and whether the locator could run. Tell the developer to open each file by hand and add any NetSuite credential or call it holds to the inventory. "None" if every file was read.>
+
 ## Not scanned
 
 <Files the scan skipped as binary, too large or unreadable, and vendored or generated folders it didn't read, with the reason. "None" if none.>

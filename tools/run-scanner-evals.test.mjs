@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { copyFixture, FIXTURES } from './run-scanner-evals.mjs';
+import { accountMismatch, copyFixture, FIXTURES } from './run-scanner-evals.mjs';
 import { scoreInventory } from './score-inventory.mjs';
 
 // The inventory a perfect scan would write for this key.
@@ -41,4 +41,14 @@ test('each answer key, written as an inventory, scores a pass', () => {
     const r = scoreInventory(keyAsInventory(key), key);
     assert.equal(r.pass, true, `${name}: ${JSON.stringify(r)}`);
   }
+});
+
+test('the account guard refuses unless the logged-in account matches', () => {
+  const status = JSON.stringify({ loggedIn: true, email: 'dev@example.org', orgName: "dev@example.org's Organization" });
+  assert.equal(accountMismatch(status, 'example.org'), null);
+  assert.match(accountMismatch(status, undefined), /TBA_EVAL_EXPECT_ACCOUNT is not set/);
+  assert.match(accountMismatch(status, ''), /not set/);
+  assert.match(accountMismatch(status, 'other.example'), /doesn't match/);
+  assert.match(accountMismatch(JSON.stringify({ loggedIn: false }), 'example.org'), /not logged in/);
+  assert.match(accountMismatch('not json', 'example.org'), /could not parse/);
 });
