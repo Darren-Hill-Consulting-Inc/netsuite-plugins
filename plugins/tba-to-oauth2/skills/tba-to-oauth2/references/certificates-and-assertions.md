@@ -1,6 +1,6 @@
 # Certificates and assertions
 
-For the client credentials grant: the integration signs a JWT assertion with its private key, and NetSuite checks it against an uploaded certificate.
+For the client credentials grant. The integration sends a signed JWT assertion to the token endpoint [E-84], and the assertion's `kid` names the Certificate ID from the mapping [E-78].
 
 ## The assertion and token request
 
@@ -31,7 +31,7 @@ Oracle describes `scope` as values "separated by a comma"; the measured assertio
 
 **Documented limit.** Oracle: "The value must be less than 60 minutes greater than the value of the iat parameter." [E-53] Keep `exp − iat` under 60 minutes [E-53].
 
-**Observed, not guaranteed — stay under 60 min.** Assertions with `exp − iat` of 61, 90 and 120 minutes were accepted, and from 121 minutes up the token endpoint returned HTTP 400 `{"error":"invalid_request"}` [E-54]. The measured ceiling was 120 minutes inclusive, double the documented limit; it may change in any release [E-54]. Don't build on it.
+**Observed, not guaranteed — stay under 60 min.** Assertions with `exp − iat` of 61, 90 and 120 minutes were accepted, and from 121 minutes up the token endpoint returned HTTP 400 `{"error":"invalid_request"}` [E-54]. The measured ceiling was 120 minutes inclusive, double the documented limit [E-54]. Treat it as subject to change, and don't build on it.
 
 We recommend an `exp` a few minutes after `iat`, with a fresh assertion for every token request.
 

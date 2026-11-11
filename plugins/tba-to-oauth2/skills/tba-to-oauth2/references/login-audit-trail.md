@@ -6,13 +6,13 @@ Use the trail to find what still runs on TBA, to watch a migration move to OAuth
 
 - Oracle's preparation guide uses this Login Audit Trail saved search criterion: "Token-based Access Token Name, with the value is not empty." [E-63]
 
-Build the inventory as a saved search in the UI. SuiteQL on `LoginAudit` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name [E-69]. Any WHERE clause other than `ROWNUM <= 3` returned "Invalid or unsupported search" [E-69].
+Build the inventory as a saved search in the UI. SuiteQL on `LoginAudit` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name [E-69]. `ROWNUM <= 3` worked, and the other WHERE clauses tried (user, date, SYSDATE) were rejected with "Invalid or unsupported search" [E-69].
 
 ## Track OAuth 2.0 use
 
 Every OAuth 2.0 row the trail recorded had the integration record's name in Token-based Application Name and a blank Token-based Access Token Name [E-64]. That covered the authorization code grant, refresh, client credentials, the rotation endpoint and SuiteQL [E-64]. Oracle's criterion lists TBA only [E-63], [E-64].
 
-To see how far a migration has got, group the trail by Token-based Application Name: TBA rows have an access token name and OAuth 2.0 rows don't [E-65]. Treat an integration as migrated when none of its recent rows has an access token name.
+To see how far a migration has got, group the trail by Token-based Application Name: TBA rows have an access token name and OAuth 2.0 rows don't [E-63], [E-64], [E-65]. Treat an integration as migrated when none of its recent rows has an access token name.
 
 ## Read the Detail column
 

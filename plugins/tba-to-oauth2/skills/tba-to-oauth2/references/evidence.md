@@ -451,7 +451,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 
 ## E-69 SuiteQL on LoginAudit is too limited
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p31a, p31b
-- Finding: `SELECT * FROM LoginAudit WHERE ROWNUM <= 3` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name. Any other WHERE clause returned "Invalid or unsupported search". Build the TBA inventory with a saved search in the UI.
+- Finding: `SELECT * FROM LoginAudit WHERE ROWNUM <= 3` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name. The other WHERE clauses tried (on user, on date, and with SYSDATE) returned "Invalid or unsupported search". Build the TBA inventory with a saved search in the UI.
 
 ## Refresh errors
 

@@ -54,7 +54,7 @@ Store only the newest refresh token, and treat old ones as secrets until they ex
 - The maximum rotation time counts from the first authorization, whatever the newest refresh token's own `exp` says [E-40].
 - The ceiling of Maximum time for token rotation was not measured [E-35].
 
-**One replayed token ends access.** A single retry bug that sends a used refresh token again ends the whole chain, and the integration stays cut off until a person authorizes it again [E-39]. We recommend:
+**One replayed token ends access.** A single retry bug that sends a used refresh token again ends the whole chain [E-38]. So in practice, we infer, the integration stays cut off until a person authorizes it again [E-39]. We recommend:
 
 - Never retry a refresh with a token you have already sent [E-39].
 - Persist the new refresh token before using the new access token.
@@ -69,4 +69,4 @@ A client credentials token request returned `access_token`, `expires_in` and `to
 
 - Oracle: "When the refresh token expires, the token endpoint returns an invalid_grant error. The application must go back to Step One of the OAuth 2.0 authorization code grant flow to restart the process." [E-70]
 
-`invalid_grant` on refresh also came from public-chain reuse [E-37], [E-38]. Either way, a person must authorize again [E-39], [E-70]. See [error-guide.md](error-guide.md).
+`invalid_grant` on refresh also came from public-chain reuse [E-37], [E-38]. After expiry a person must authorize again [E-70]; after a chain kill we infer the same [E-39]. See [error-guide.md](error-guide.md).
