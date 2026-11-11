@@ -80,6 +80,7 @@ Report each line that holds a NetSuite credential's value, placeholder or declar
 - What counts: consumer key and secret, token ID and secret, account ID, NLAuth or Passport email and password, application ID, OAuth 2.0 client ID, certificate ID, private key path.
 - Record the key or variable name (`NS_TOKEN_SECRET`, `consumerSecret`, `netsuite.password`), never the value. Don't copy values into the plan, the inventory or chat.
 - Code that only reads a credential (`process.env.NS_TOKEN_SECRET`) is part of its site, not a separate credential line.
+- A template that only passes keys through without naming them (a Helm `range` over `.Values.secretEnv` into a Secret or `secretKeyRef`) isn't a credential line either: record the lines in the values file that name each key.
 - Credentials for look-alikes (OAuth 1.0a to a host outside `netsuite.com`) are exclusions, not credentials.
 
 ## 6. Which line to report
