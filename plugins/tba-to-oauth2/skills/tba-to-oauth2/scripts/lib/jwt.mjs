@@ -3,15 +3,39 @@ import crypto from 'node:crypto';
 
 export const ALLOWED_ALGS = ['PS256', 'PS384', 'PS512', 'ES256', 'ES384', 'ES512'];
 
+const CURVE_FOR_ALG = { ES256: 'prime256v1', ES384: 'secp384r1', ES512: 'secp521r1' };
+
+/** Returns a fixed one-line problem description, or null when the key suits the algorithm. Never includes key material. */
+function keyTypeError(privateKeyPem, alg) {
+  let key;
+  try {
+    key = crypto.createPrivateKey(privateKeyPem);
+  } catch {
+    return `could not sign the assertion with ${alg}: the private key is unreadable or passphrase-encrypted`;
+  }
+  const type = key.asymmetricKeyType;
+  if (type !== 'rsa' && type !== 'ec') return `unsupported private key type "${type}"; NetSuite certificates are RSA or EC [E-46]`;
+  if (alg.startsWith('PS') && type !== 'rsa') return `${alg} needs an RSA key but the key is EC; use an ES algorithm`;
+  if (alg.startsWith('ES')) {
+    if (type !== 'ec') return `${alg} needs an EC key but the key is RSA; use a PS algorithm`;
+    if (key.asymmetricKeyDetails?.namedCurve !== CURVE_FOR_ALG[alg]) {
+      return `${alg} does not match the key's curve; the algorithm must match the curve [E-45]`;
+    }
+  }
+  return null;
+}
+
 const b64url = (v) => Buffer.from(v).toString('base64url');
 
 export function signAssertion({ clientId, certId, privateKeyPem, alg, tokenUrl, scopes, lifetimeSec = 300, now = Date.now() }) {
-  if (alg === 'RS256' || /^RS/.test(alg ?? '')) {
-    throw new Error(`${alg} is rejected by NetSuite with a bare invalid_grant; use PS256 or ES256 [E-44]`);
+  if (alg === 'RS256') {
+    throw new Error('RS256 was measured rejected by NetSuite with a bare invalid_grant [E-44]; use PS256 or ES256');
   }
   if (!ALLOWED_ALGS.includes(alg)) {
     throw new Error(`unsupported algorithm "${alg}"; NetSuite accepts ${ALLOWED_ALGS.join(', ')} [E-42]`);
   }
+  const keyType = keyTypeError(privateKeyPem, alg);
+  if (keyType) throw new Error(keyType);
   const iat = Math.floor(now / 1000);
   const header = { typ: 'JWT', alg, kid: certId };
   const payload = { iss: clientId, scope: scopes, aud: tokenUrl, iat, exp: iat + lifetimeSec };

@@ -61,7 +61,9 @@ export function inspectCert(buf, { alg, privateKeyPem, now = Date.now() } = {}) 
     const bits = d.modulusLength;
     checks.push(bits === 3072 || bits === 4096
       ? chk('bit-length', 'Key size', 'pass', `RSA ${bits} bits`, 'E-46')
-      : chk('bit-length', 'Key size', 'fail', `RSA ${bits} bits; NetSuite requires 3072 or 4096 and rejects other sizes at upload`, bits === 2048 ? 'E-47' : 'E-46'));
+      : bits === 2048
+        ? chk('bit-length', 'Key size', 'fail', 'RSA 2048 bits; NetSuite rejected an RSA 2048 certificate at upload', 'E-47')
+        : chk('bit-length', 'Key size', 'fail', `RSA ${bits} bits; must be 3072 or 4096`, 'E-46'));
   } else if (type === 'ec') {
     const label = CURVE_LABEL[d.namedCurve];
     checks.push(label
@@ -86,10 +88,11 @@ export function inspectCert(buf, { alg, privateKeyPem, now = Date.now() } = {}) 
 
   // Algorithm vs key type
   const title = 'Signing algorithm fits the key';
-  if (/^RS/.test(alg ?? '')) checks.push(chk('alg-match', title, 'fail', `${alg} is rejected by NetSuite; use PS256 for RSA or ES256 for EC`, 'E-44'));
+  if (alg === 'RS256') checks.push(chk('alg-match', title, 'fail', 'RS256 was measured rejected by NetSuite; use PS256 for RSA or ES256 for EC', 'E-44'));
+  else if (/^RS/.test(alg ?? '')) checks.push(chk('alg-match', title, 'fail', `${alg} is not in NetSuite's supported algorithm list; use PS256 for RSA or ES256 for EC`, 'E-42'));
   else if (type === 'rsa') {
     checks.push(/^PS(256|384|512)$/.test(alg ?? '')
-      ? chk('alg-match', title, 'pass', `${alg} suits an RSA key`, 'E-43')
+      ? chk('alg-match', title, 'pass', `${alg} suits an RSA key`, alg === 'PS384' ? 'E-42' : 'E-43')
       : chk('alg-match', title, 'fail', `${alg} does not suit an RSA key; use PS256, PS384 or PS512`, 'E-42'));
   } else if (type === 'ec') {
     checks.push(CURVE_FOR_ALG[alg]
@@ -107,7 +110,7 @@ export function inspectCert(buf, { alg, privateKeyPem, now = Date.now() } = {}) 
   // Validity span
   const years = (to - from) / (365 * DAY);
   checks.push((to - from) > 731 * DAY
-    ? chk('validity-span', 'Validity within two years', 'warn', `valid for ${years.toFixed(1)} years; NetSuite silently shortens anything over two years to two years, so plan rotation from the shortened date`, 'E-49')
+    ? chk('validity-span', 'Validity within two years', 'warn', `valid for ${years.toFixed(1)} years; NetSuite silently shortens anything over two years to two years, so plan rotation from the shortened date`, 'E-50')
     : chk('validity-span', 'Validity within two years', 'pass', `valid for ${years.toFixed(1)} years`, 'E-49'));
 
   checks.push(privateKeyPem ? keyMatch(cert, privateKeyPem) : chk('key-match', 'Private key matches certificate', 'skip', 'no private key supplied'));

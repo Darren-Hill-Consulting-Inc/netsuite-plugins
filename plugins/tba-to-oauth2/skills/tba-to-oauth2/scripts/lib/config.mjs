@@ -32,7 +32,7 @@ export function loadConfig({ argv, env }) {
   if (!env.NS_CLIENT_ID) throw new ConfigError('NS_CLIENT_ID is not set');
 
   const alg = env.NS_ALG || 'PS256';
-  if (/^RS/.test(alg)) throw new ConfigError(`NS_ALG ${alg} is rejected by NetSuite; use PS256 or ES256 [E-44]`);
+  if (alg === 'RS256') throw new ConfigError('NS_ALG RS256 was measured rejected by NetSuite [E-44]; use PS256 or ES256');
   if (!ALLOWED_ALGS.includes(alg)) throw new ConfigError(`NS_ALG must be one of ${ALLOWED_ALGS.join(', ')} [E-42]`);
 
   const host = accountHost(accountId);

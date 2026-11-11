@@ -19,6 +19,7 @@ test('wrong value returns false', async () => {
   assert.match(r.out, /Add certificate/);
 });
 test('case-different value returns false', async () => assert.equal((await run('1234567_sb1')).ok, false));
+test('leading space fails', async () => assert.equal((await run(' 1234567_SB1')).ok, false));
 test('exact match returns true', async () => assert.equal((await run('1234567_SB1')).ok, true));
 test('closed input returns false', async () => {
   const input = new PassThrough();

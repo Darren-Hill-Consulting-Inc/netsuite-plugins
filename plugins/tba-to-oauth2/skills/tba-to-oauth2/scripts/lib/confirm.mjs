@@ -13,6 +13,6 @@ export function confirmAccountChange({ accountId, action, input = process.stdin,
     };
     rl.on('close', () => finish(false));
     output.write(`About to change account ${accountId}: ${action}\nType the account ID to confirm: `);
-    rl.once('line', (line) => finish(line.trim() === accountId));
+    rl.once('line', (line) => finish(line.replace(/\r$/, '') === accountId));
   });
 }

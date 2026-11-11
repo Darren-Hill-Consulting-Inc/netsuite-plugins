@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { inspectCert } from './certs.mjs';
-import { genKey, pem, makeCert, SKIP_OPENSSL } from './fixtures.mjs';
+import { genKey, pem, makeCert, SKIP_OPENSSL, SKIP_DATES } from './fixtures.mjs';
 
 const get = (checks, id) => checks.find((c) => c.id === id);
 const opts = { skip: SKIP_OPENSSL };
@@ -41,6 +41,23 @@ test('P-256 with ES256 passes; with ES384 fails curve', opts, () => {
   assert.equal(bad.evidence, 'E-45');
 });
 
+test('P-521 with ES512 passes with the not-measured note', opts, () => {
+  const k = genKey('p521');
+  const c = inspectCert(Buffer.from(makeCert(k.privateKey).pem), { alg: 'ES512' });
+  for (const id of ['bit-length', 'curve', 'alg-match']) assert.equal(get(c, id).status, 'pass', id);
+  assert.match(get(c, 'curve').detail, /listed by Oracle, not measured/);
+});
+
+test('RSA 3072 with PS384 cites the Oracle list; RS384 fails citing E-42; other RSA sizes cite E-46', opts, () => {
+  const k = genKey('rsa3072');
+  const buf = Buffer.from(makeCert(k.privateKey).pem);
+  assert.equal(get(inspectCert(buf, { alg: 'PS384' }), 'alg-match').evidence, 'E-42');
+  assert.equal(get(inspectCert(buf, { alg: 'PS512' }), 'alg-match').evidence, 'E-43');
+  const rs = get(inspectCert(buf, { alg: 'RS384' }), 'alg-match');
+  assert.equal(rs.status, 'fail');
+  assert.equal(rs.evidence, 'E-42');
+});
+
 test('P-384 with ES384 passes with the not-measured note', opts, () => {
   const k = genKey('p384');
   const c = inspectCert(Buffer.from(makeCert(k.privateKey).pem), { alg: 'ES384' });
@@ -54,10 +71,10 @@ test('5-year validity warns about the two-year shortening', opts, () => {
   const v = get(c, 'validity-span');
   assert.equal(v.status, 'warn');
   assert.match(v.detail, /two years/);
-  assert.equal(v.evidence, 'E-49');
+  assert.equal(v.evidence, 'E-50');
 });
 
-test('expired certificate fails; not-yet-valid fails', opts, () => {
+test('expired certificate fails; not-yet-valid fails', { skip: SKIP_OPENSSL || SKIP_DATES }, () => {
   const k = genKey('p256');
   const old = makeCert(k.privateKey, { notBefore: '20200101000000Z', notAfter: '20210101000000Z' });
   assert.equal(get(inspectCert(Buffer.from(old.pem), { alg: 'ES256' }), 'validity').status, 'fail');
