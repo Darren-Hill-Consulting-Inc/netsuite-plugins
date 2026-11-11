@@ -213,3 +213,37 @@ test('recallWithoutEnv leaves out key entries in .env files only', () => {
   assert.equal(r.recall, 4 / 5);
   assert.equal(r.recallWithoutEnv, 2 / 3);
 });
+
+test('a keyed code file listed under notInspected is still a miss', () => {
+  const r = scoreInventory(inventory((inv) => {
+    inv.integrations[0].sites.shift();
+    inv.notInspected = [{ path: 'src/lib/nsAuth.js', reason: 'read denied' }];
+  }), KEY);
+  assert.deepEqual(r.blockedReported, []);
+  assert.deepEqual(r.missed, [{ file: 'src/lib/nsAuth.js', line: 58, kind: 'tba-signing' }]);
+  assert.equal(r.recall, 4 / 5);
+  assert.equal(r.pass, false);
+});
+
+test('only .env and .env.* files can be blockedReported', () => {
+  const key = {
+    integrations: [{
+      id: 'x', outcome: 'm2m', attended: false,
+      sites: [{ file: 'a.js', line: 1, kind: 'call-rest' }],
+      credentials: [
+        { file: 'svc/.env.production', line: 1, name: 'A' },
+        { file: 'svc/.envrc', line: 1, name: 'B' },
+        { file: 'svc/env', line: 1, name: 'C' },
+      ],
+    }],
+    decoys: [],
+  };
+  const inv = {
+    integrations: [{ id: 'x', outcome: 'm2m', sites: [{ file: 'a.js', line: 1, kind: 'call-rest' }], credentialLocations: [] }],
+    notInspected: ['svc/.env.production', 'svc/.envrc', 'svc/env'].map((path) => ({ path, reason: 'denied' })),
+  };
+  const r = scoreInventory(inv, key);
+  assert.deepEqual(r.blockedReported.map((e) => e.file), ['svc/.env.production']);
+  assert.deepEqual(r.missed.map((e) => e.file), ['svc/.envrc', 'svc/env']);
+  assert.equal(r.pass, false);
+});

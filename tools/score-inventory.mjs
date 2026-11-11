@@ -4,11 +4,13 @@
 // - A reported entry matches a key entry in the same file within 2 lines. Sites match
 //   sites and credentials match credentials; each reported entry satisfies at most one
 //   key entry (closest line first, same kind breaking ties).
-// - A key entry with no match, in a file the inventory lists under `notInspected`
-//   (the scan couldn't read it and said so), is blockedReported: reported separately,
-//   not a miss. A blocked file the inventory doesn't list is still a miss.
+// - A key entry with no match, in a `.env` or `.env.*` file the inventory lists under
+//   `notInspected` (a policy blocked the read and the scan said so), is blockedReported:
+//   reported separately, not a miss. Those are the only files a policy is known to
+//   block, so listing any other file under `notInspected` doesn't excuse its entries,
+//   and a blocked `.env` file the inventory doesn't list is still a miss.
 // - recall = matched key sites and credentials / (all of them - blockedReported).
-//   recallWithoutEnv is the same over key entries outside `.env*` files.
+//   recallWithoutEnv is the same over key entries outside `.env` / `.env.*` files.
 // - Each key integration is paired with the inventory integration holding most of its
 //   matched sites; a different outcome, or no such integration, is an outcome mismatch.
 // - A reported site or credential that matches no key entry is a false positive
@@ -70,14 +72,14 @@ export function scoreInventory(inventory, key) {
     ...keySites.map((e, i) => ({ entry: site(e), found: sitesMatch.keyTo[i] !== -1 })),
     ...keyCreds.map((e, i) => ({ entry: credential(e), found: credsMatch.keyTo[i] !== -1 })),
   ];
-  const blocked = (k) => !k.found && notInspected.has(k.entry.file);
+  const isEnvFile = (file) => /^\.env(\..+)?$/.test(file.split('/').pop());
+  const blocked = (k) => !k.found && isEnvFile(k.entry.file) && notInspected.has(k.entry.file);
   const missed = keyed.filter((k) => !k.found && !blocked(k)).map((k) => k.entry);
   const blockedReported = keyed.filter(blocked).map((k) => k.entry);
   const recallOf = (entries) => {
     const counted = entries.filter((k) => !blocked(k));
     return counted.length === 0 ? 1 : counted.filter((k) => k.found).length / counted.length;
   };
-  const isEnvFile = (file) => file.split('/').pop().startsWith('.env');
   const recall = recallOf(keyed);
   const recallWithoutEnv = recallOf(keyed.filter((k) => !isEnvFile(k.entry.file)));
 

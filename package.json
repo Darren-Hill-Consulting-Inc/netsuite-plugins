@@ -3,5 +3,13 @@
   "private": true,
   "type": "module",
   "engines": { "node": ">=20" },
-  "scripts": { "test": "node --test" }
+  "//": [
+    "eval:plugin and eval:scanner make billed model calls. Set TBA_EVAL_CLAUDE_CONFIG_DIR to the Claude config dir of the account that should pay, and TBA_EVAL_EXPECT_ACCOUNT to part of that account's email or org name; both scripts stop when either is unset, and refuse (exit 2) when `claude auth status` doesn't match.",
+    "eval:plugin flags: --judge-model sonnet because the default Haiku judge voted FAIL on a correct answer (finding-04, Task 8) while Sonnet passed it with the same criteria; --ablation none because a two-arm run doesn't fit the cost ceiling; --runs 1 per the owner's spend cut (the recorded 24/24 ran at 3 runs per case); --trust-plugin and --no-publish for an unattended local run."
+  ],
+  "scripts": {
+    "test": "node --test",
+    "eval:plugin": "export CLAUDE_CONFIG_DIR=\"${TBA_EVAL_CLAUDE_CONFIG_DIR:?set TBA_EVAL_CLAUDE_CONFIG_DIR}\"; claude auth status | grep -qF \"${TBA_EVAL_EXPECT_ACCOUNT:?set TBA_EVAL_EXPECT_ACCOUNT}\" || { echo 'eval:plugin: logged-in account does not match TBA_EVAL_EXPECT_ACCOUNT' >&2; exit 2; }; mkdir -p eval-out && claude plugin eval plugins/tba-to-oauth2 --runs 1 --ablation none --judge-model sonnet --trust-plugin --no-publish --max-cost-usd 15 -j 4 --json eval-out/plugin-eval.json",
+    "eval:scanner": "CLAUDE_CONFIG_DIR=\"${TBA_EVAL_CLAUDE_CONFIG_DIR:?set TBA_EVAL_CLAUDE_CONFIG_DIR}\" node tools/run-scanner-evals.mjs --runs 1 --concurrency 4"
+  }
 }
