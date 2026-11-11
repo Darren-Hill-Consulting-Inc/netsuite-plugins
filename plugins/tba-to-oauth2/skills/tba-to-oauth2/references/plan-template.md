@@ -152,7 +152,7 @@ Set the variables in your own shell or secrets manager; never paste values into 
 - [ ] `node <skill scripts folder>/check-cert.mjs --account <account>`: key size, curve, algorithm, two-year validity, key matches certificate.
 - [ ] `node <skill scripts folder>/check-assertion.mjs --account <account> --assertion <file> --kid <certificate id>`: a saved assertion's header and claims, and that its `kid` matches the certificate ID [E-78].
 - [ ] `node <skill scripts folder>/m2m-check.mjs --account <account>`: token, lifetime, SuiteQL `SELECT 1`, certificate list. Read-only.
-- [ ] `node <skill scripts folder>/refresh-check.mjs --account <account>`: confidential refresh. A public client's refresh check ends the refresh chain [E-36], [E-38]; run it only when ready to authorize again.
+- [ ] `node <skill scripts folder>/refresh-check.mjs --account <account>`: confidential refresh. A public client's refresh check discards the new refresh token [E-36], and we infer it ends the chain: the old token fails [E-37] and ends the chain [E-38], [E-39] (inference). Run it only when ready to authorize again.
 - [ ] `node <skill scripts folder>/rotate-cert.mjs --account <account> list`: free slots and `valid_until` [E-51], [E-57].
 - [ ] `node <skill scripts folder>/verify.mjs --account <account>`: all of the above that apply, in one report.
 - [ ] Login Audit Trail: the integration's recent rows show its application name and no access token name [E-64], [E-65].

@@ -26,7 +26,7 @@ Independent work by Darren Hill Consulting Inc. Not affiliated with or endorsed 
 ## Development
 
 ```bash
-npm test                                   # unit tests, Node 20+
+npm test                                   # unit tests, Node.js 20.12 or later (22 LTS recommended)
 node tools/check-evidence.mjs              # every [E-nn] citation resolves
 claude plugin validate --strict ./plugins/tba-to-oauth2
 ```

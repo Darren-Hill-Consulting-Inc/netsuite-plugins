@@ -84,7 +84,7 @@ Q5 to Q7 don't change the design. They change its steps:
 
 ### Integration record and mapping
 
-- Enable the client credentials grant on the integration record. Choose the scope the calls need: `restlets`, `rest_webservices` or `suite_analytics` [E-80]. The rotation endpoint needs `rest_webservices` [E-56].
+- Enable the client credentials grant on the integration record. Choose the scope the calls need: `restlets`, `rest_webservices` or `suite_analytics` [E-80]. The integration record field labels in this file aren't quoted from Oracle; check them against your NetSuite UI. The rotation endpoint needs `rest_webservices` [E-56].
 - Map the certificate to an entity, a role and the integration record [E-51]. The role needs the Log in Using OAuth 2.0 Access Tokens permission [E-16].
 - NetSuite generates a Certificate ID during the mapping; that is the assertion's `kid` [E-78].
 - Field labels and menu paths aren't quoted here. Follow Oracle's OAuth 2.0 Client Credentials Setup pages for where each setting lives.
@@ -183,9 +183,9 @@ export async function getAccessToken() {
 With `${CLAUDE_SKILL_DIR}/scripts/rotate-cert.mjs`, or the same four calls built into the integration [E-57]:
 
 1. `list`: check for a free slot. Five active certificates is the limit, RSA and EC together [E-51]; a sixth add is likely to fail (inference) [E-62].
-2. `add --cert <new pem> --entity <id> --role <id> --confirm`: the body needs the entity and role internal IDs [E-58]. The script prints the new certificate ID once.
+2. `add --cert <new pem> --entity <id> --role <id>` (account-change rule in SKILL.md): the body needs the entity and role internal IDs [E-58]. The script prints the new certificate ID once.
 3. Switch the integration to the new key and its certificate ID as `kid`. The new certificate signed tokens straight away [E-59].
-4. `revoke --certificate-id <old id> --confirm` once the new one works [E-60]. Tokens already issued may run out their 60 minutes [E-61].
+4. `revoke --certificate-id <old id>` (same account-change rule) once the new one works [E-60]. Tokens already issued may run out their 60 minutes [E-61].
 5. `list` again and check the new certificate's `valid_until`; whether the endpoint applies the two-year cap was not measured [E-57].
 
 `add` and `revoke` change the account. Before either, follow the account-change rule in SKILL.md.
@@ -218,7 +218,7 @@ Design A, except for signing:
 
 ### Integration record
 
-- Enable the authorization code grant, and set the redirect URI your app uses. Choose the scope the calls need [E-80].
+- Enable the authorization code grant, and set the redirect URI your app uses. Choose the scope the calls need [E-80]. The field labels aren't quoted from Oracle.
 - The role of each user who authorizes needs the Log in Using OAuth 2.0 Access Tokens permission [E-16].
 - Refresh token validity (in hours): default 168, range 1 to 720 [E-30]. At 720 a refresh token carried a 30-day expiry [E-31]. A new authorization picks up the new value [E-31]; earlier refresh tokens kept working in testing [E-33].
 
@@ -266,7 +266,7 @@ Design C, with these differences.
 
 ### Integration record
 
-- Mark the client public. Refresh token validity defaults to two days, settable from 1 to 720 hours [E-27], [E-28].
+- Mark the client public. Oracle says refresh token validity defaults to two days for public clients [E-27] and accepts 1 to 720 hours [E-28]; we did not measure the default.
 - Set the Maximum time for token rotation. It counts from the first authorization (`oit`), whatever the newest refresh token's own expiry says [E-40]. Its ceiling was not measured [E-35].
 - PKCE is mandatory in practice: a public client without it failed at the token step, after consent [E-24].
 
@@ -281,4 +281,4 @@ Every refresh returns a new refresh token, and `oit` stays the same [E-36]. Reus
 
 ### Verify
 
-Don't test refresh casually: `refresh-check --public` uses up the chain, because the script doesn't save the new refresh token [E-36]. Run it only after the account-change rule in SKILL.md, and with the user ready to authorize again.
+Don't test refresh casually: `refresh-check --public` uses up the chain, because the script doesn't save the new refresh token [E-36]. We infer the app must authorize again: the old token fails [E-37] and ends the chain [E-38], and one replayed token ends access [E-39] (inference). Run it only after the account-change rule in SKILL.md, and with the user ready to authorize again.

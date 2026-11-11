@@ -25,10 +25,12 @@ For a small repo, read the code directly and use the locator as a cross-check.
 
 ## 2. Is it NetSuite?
 
+Sections 2 and 3 are detection heuristics: what integration code typically contains, so you know where to look. They are not claims about NetSuite's behaviour, apart from the entries cited.
+
 TBA requests are signed with OAuth 1.0a: HMAC-SHA1 or HMAC-SHA256, a `realm`, a consumer key and a token. OAuth 1.0a isn't NetSuite-specific, so we infer that any repo may hold OAuth 1.0a signing for other services, and no signing detail alone proves NetSuite. Every TBA site must pass a host check. Follow the request to the host it reaches:
 
 - **NetSuite:** a host under `netsuite.com`. The ones integration code calls are `<account>.suitetalk.api.netsuite.com` (REST web services, SuiteQL, SOAP, and the OAuth 2.0 token endpoint [E-84]), `<account>.restlets.api.netsuite.com` (RESTlets, and the TBA `/rest/requesttoken` and `/rest/accesstoken` steps), `<account>.app.netsuite.com` (`authorizetoken.nl`, and the OAuth 2.0 `authorize.nl` [E-74]), and the generic `webservices.netsuite.com` in older SOAP code.
-- **Account-ID shape:** NetSuite code puts the account ID in the `realm` and in the host. Recognise these shapes: digits for production (`1234567`), a suffix for sandboxes and release previews (`1234567_SB1`, `1234567_RP`), and `TSTDRV` plus digits for test drives. In hosts the ID is lower case with `-` for `_` (`1234567-sb1`). The `netsuite` Python library's `account_slugified` does exactly that ([source](https://github.com/jacobsvante/netsuite/blob/HEAD/netsuite/config.py), checked 2026-11-11).
+- **Account-ID shape:** NetSuite code puts the account ID in the `realm` and in the host. Recognise these shapes: digits for production (`1234567`), a suffix for sandboxes and release previews (`1234567_SB1`, `1234567_RP`), and `TSTDRV` plus digits for test drives. Code and libraries typically write the account ID in a host lower-cased with `-` for `_` (`1234567-sb1`); this is what they write, not a NetSuite rule. The `netsuite` Python library's `account_slugified` does that ([source](https://github.com/jacobsvante/netsuite/blob/HEAD/netsuite/config.py), checked 2026-11-11).
 - **Not enough on its own:** a numeric realm. We infer that other OAuth 1.0a providers can carry a number in `realm` that looks like an account ID, so a numeric realm alone proves nothing. A shared signer (a `utils/oauth.js` used by several clients) is a site only through the callers that send to a NetSuite host. Report it once, with those callers.
 
 If the host comes from configuration, follow it to the value (env file, Helm values, CI variables). If it can't be resolved from the repo, report the site and say the host is unconfirmed.
@@ -40,15 +42,15 @@ If the host comes from configuration, follow it to the value (env file, Helm val
 | `tba-signing` | `oauth_signature_method` with `HMAC-SHA256`/`HMAC-SHA1`; `oauth_consumer_key`, `oauth_token`, `oauth_nonce`, `oauth_timestamp`; a `realm`; HMAC over a base string keyed with `consumerSecret&tokenSecret`; an `Authorization: OAuth realm="…"` header; the three-step flow (`/rest/requesttoken`, `authorizetoken.nl`, `/rest/accesstoken`) | host check (section 2) | `tba-signature-method`, `tba-oauth-param`, `tba-realm`, `tba-realm-account-id`, `tba-hmac`, `tba-base-string`, `tba-auth-header`, `tba-three-step` |
 | `soap-tba` | `TokenPassport` / `tokenPassport` built by hand: `account`, `consumerKey`, `token`, `nonce`, `timestamp`, `signature` with `algorithm` `HMAC_SHA256`, signed over `account&consumerKey&token&nonce&timestamp` | the code builds or sets the header, rather than a proxy declaring the type | `soap-token-passport` |
 | `soap-passport` | `Passport` with `email`, `password`, `account`, `role`, sent to `login` or as a request header; often an `ApplicationInfo` with an application ID | SOAP port or NetSuite namespace in the same flow | `soap-passport` |
-| `issuetoken` | the IssueToken endpoint or operation: TBA tokens minted from a user's credentials | NetSuite host | `soap-issuetoken` |
-| `nlauth` | `Authorization: NLAuth nlauth_account=…, nlauth_email=…, nlauth_signature=…, nlauth_role=…` in code, `curl`, CI or scripts | the header itself is NetSuite-only | `nlauth` |
+| `issuetoken` | the IssueToken endpoint or operation: TBA tokens minted from a user's credentials [E-01], [E-06] | NetSuite host | `soap-issuetoken` |
+| `nlauth` | `Authorization: NLAuth nlauth_account=…, nlauth_email=…, nlauth_signature=…, nlauth_role=…` in code, `curl`, CI or scripts | the header name is NetSuite's, so the host check is a formality (heuristic). NLAuth integrations stop working in 2027.1 [E-05] | `nlauth` |
 | `call-restlet` | `/app/site/hosting/restlet.nl?script=…&deploy=…`, `restlets.api.netsuite.com` | NetSuite host | `restlet-url`, `tba-auth-header` |
 | `call-rest` | `/services/rest/record/v1/…`, library paths like `record/v1/customer` | NetSuite host | `rest-record`, `netsuite-host` |
 | `call-suiteql` | `/services/rest/query/v1/suiteql`, `query/v1/suiteql`, library SuiteQL helpers | NetSuite host | `suiteql` |
 | `call-soap` | `suitetalk.api.netsuite.com/services/NetSuitePort_<version>`, `webservices.netsuite.com`, `/wsdl/v<version>/netsuite.wsdl`; SOAP operations (`search`, `searchMoreWithId`, `get`, `add`, `update`, `upsert`, `login`, …) on a SuiteTalk port or service | the receiver is a SuiteTalk port | `soap-endpoint`, `soap-operation` |
 | `library` | a NetSuite or OAuth 1.0a client library constructed with TBA credentials (section 4) | for generic OAuth 1.0a libraries, the host check | `lib-node`, `lib-python`, `lib-php`, `lib-java-dotnet` |
 | `credential` | section 5 | it belongs to a NetSuite integration | `cred-*` |
-| `oauth2-existing` | `/services/rest/auth/oauth2/v1/token`, `authorize.nl`, `grant_type=client_credentials`, `client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer`, a JWT signed with `PS256`/`ES256` and a `kid`, `code_verifier`/`code_challenge` | NetSuite token endpoint [E-84], [E-74] | `oauth2-endpoint`, `oauth2-grant` |
+| `oauth2-existing` | `/services/rest/auth/oauth2/v1/token` [E-84], `authorize.nl` [E-74], `grant_type=client_credentials`, `client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer`, a JWT signed with `PS256`/`ES256` and a `kid`, `code_verifier`/`code_challenge` | NetSuite token endpoint [E-84], [E-74] | `oauth2-endpoint`, `oauth2-grant` |
 
 The WSDL or endpoint version in a SOAP URL matters for the plan: 2025.2 is the last planned SOAP endpoint [E-11].
 
@@ -106,7 +108,7 @@ An integration is one thing that runs with one set of credentials: one job, one 
 | TBA to REST web services, SuiteQL or RESTlets, attended | `auth-code-pkce`: PKCE is required for new authorization code integrations from 2027.1 [E-07] |
 | TBA to REST web services, SuiteQL or RESTlets, unattended | `m2m` (client credentials) |
 | NLAuth | `m2m` if unattended, `auth-code-pkce` if a person runs it. Migrate first: NLAuth integrations stop working in 2027.1 [E-05]. Existing IssueToken integrations are excepted from that stop [E-06]. |
-| IssueToken (`issuetoken`) | The tokens it issues are TBA tokens, so treat it like the TBA rows above: `m2m` if unattended, `auth-code-pkce` if a person runs it. No new IssueToken integrations from 2027.1 [E-01]; existing ones are excepted from the 2027.1 NLAuth stop [E-06] and keep working until TBA's final end of support [E-03], tentatively 2028.2 [E-02]. |
+| IssueToken (`issuetoken`) | We infer the tokens it issues are TBA tokens (the 2027.1 notice groups it with the three-step flow [E-01]), so treat it like the TBA rows above: `m2m` if unattended, `auth-code-pkce` if a person runs it. No new IssueToken integrations from 2027.1 [E-01]; existing ones are excepted from the 2027.1 NLAuth stop [E-06] and keep working until TBA's final end of support [E-03], tentatively 2028.2 [E-02]. |
 | Any SOAP (`soap-tba`, `soap-passport`, a SOAP library) | `rewrite-rest`: OAuth 2.0 isn't supported for SOAP web services [E-08], and SOAP endpoints are disabled in 2028.2 [E-13]. Point at Oracle's upgrade guide [E-15]. |
 | Already on OAuth 2.0 (NetSuite token endpoint, client credentials or authorization code) | `already-oauth2`; all its sites use kind `oauth2-existing`. Check it against the verify scripts rather than replanning it. |
 
@@ -119,4 +121,4 @@ List each rejected candidate in the inventory's `excluded` list, with the file, 
 - **Look-alikes:** OAuth 1.0a to any host outside `netsuite.com` (for example `api.twitter.com` or `api.xero.com` in code that calls them), even when it uses the same library or a NetSuite-looking realm.
 - **Generic helpers and tests:** RFC 5849 reference signers, spec helpers and fixtures signing for `example.com`, unless a NetSuite caller uses them.
 - **Vendored and generated code:** library sources in `node_modules`/`vendor` and WSDL proxies that only declare `TokenPassport` or `Passport`. The repo's own call into them is the site.
-- **NetSuite-side code:** SuiteScript files (`@NScriptType`, `define(['N/…'])`) run inside NetSuite and don't authenticate to it. A RESTlet script tells you a RESTlet exists; the caller is the site.
+- **NetSuite-side code:** SuiteScript files (`@NScriptType`, `define(['N/…'])`) are NetSuite-side code, which we infer doesn't authenticate to NetSuite itself (detection heuristic). A RESTlet script tells you a RESTlet exists; the caller is the site.

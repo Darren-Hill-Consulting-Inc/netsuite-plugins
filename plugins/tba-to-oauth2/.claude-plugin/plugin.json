@@ -6,7 +6,7 @@
     "name": "Darren Hill Consulting Inc.",
     "url": "https://darrenhillconsulting.ca"
   },
-  "homepage": "https://darrenhillconsulting.ca/tools",
+  "homepage": "https://github.com/Darren-Hill-Consulting-Inc/netsuite-plugins",
   "repository": "https://github.com/Darren-Hill-Consulting-Inc/netsuite-plugins",
   "license": "Apache-2.0",
   "keywords": ["netsuite", "oauth2", "tba", "migration", "suitetalk"]

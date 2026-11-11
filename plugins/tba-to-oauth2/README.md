@@ -6,7 +6,7 @@ Independent work by Darren Hill Consulting Inc. Not affiliated with or endorsed 
 
 ## Why now
 
-Oracle has announced that from NetSuite 2027.1 no new integrations can use TBA [E-01], and that NLAuth integrations stop working [E-05]. End of support for existing TBA integrations is "tentatively planned for the 2028.2 release" [E-02]. The exact quotes are in [references/dates-and-soap.md](skills/tba-to-oauth2/references/dates-and-soap.md).
+Oracle has announced that from NetSuite 2027.1 no new integrations can use TBA [E-01], and that NLAuth integrations stop working [E-05], except existing IssueToken integrations [E-06]. End of support for existing TBA integrations is "tentatively planned for the 2028.2 release" [E-02]. The exact quotes are in [references/dates-and-soap.md](skills/tba-to-oauth2/references/dates-and-soap.md).
 
 ## What it does
 
@@ -45,7 +45,7 @@ claude plugin marketplace add Darren-Hill-Consulting-Inc/netsuite-plugins
 claude plugin install tba-to-oauth2@darren-hill-consulting
 ```
 
-Requirements: Claude Code, and Node.js 20 or later for the scripts. The scripts have no npm dependencies.
+Requirements: Claude Code, and Node.js 20.12 or later (22 LTS recommended) for the scripts. The scripts have no npm dependencies.
 
 On claude.ai or the API, the skill still answers and plans, but it gives you the scripts to run yourself. They need network access to your NetSuite account.
 
@@ -74,7 +74,7 @@ Some commands change your account: adding or revoking a certificate, and testing
 
 - It finds only what is in the repo. iPaaS connectors and vendor-hosted integrations are listed as things to check in the Login Audit Trail.
 - Role advice uses Oracle's documented permissions. Least-privilege roles were not measured.
-- The Login Audit Trail can't be searched from SuiteScript [E-87], so finding integrations outside the repo uses a search you run in the NetSuite UI and export to CSV [E-85].
+- From SuiteScript, `N/search` has no Login Audit Trail search type [E-87], and SuiteQL's `LoginAudit` lacks the token columns [E-69], so finding integrations outside the repo uses a search you run in the NetSuite UI and export to CSV [E-85].
 - Measured on NetSuite 2026.2. Re-check after 2027.1.
 
 ## Help with a bigger migration

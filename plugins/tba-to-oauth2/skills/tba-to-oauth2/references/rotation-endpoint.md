@@ -29,12 +29,12 @@ The body that worked was JSON with `fileName`, `fileContent` (the PEM text), `en
 {
   "fileName": "integration-2027.pem",
   "fileContent": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----\n",
-  "entity": "<entity internal ID>",
-  "role": "<role internal ID>"
+  "entity": 42,
+  "role": 3
 }
 ```
 
-The values above are placeholders. Whether `entity` and `role` must be strings or numbers was not measured.
+The values above are placeholders; `entity` and `role` are internal IDs. The measured body sent them as JSON numbers, and numbers worked [E-58]; strings were not tested.
 
 These failed with HTTP 500: an empty JSON object, a raw PEM body, and `{"certificate": …}` [E-58]. The last error listed the known fields `application, validUntil, entity, validFrom, fileName, fileContent, role` [E-58].
 

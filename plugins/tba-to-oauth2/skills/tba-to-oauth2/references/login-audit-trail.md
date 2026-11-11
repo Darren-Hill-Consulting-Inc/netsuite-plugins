@@ -6,7 +6,7 @@ Use the trail to find what still runs on TBA, to watch a migration move to OAuth
 
 - Oracle's preparation guide uses this Login Audit Trail saved search criterion: "Token-based Access Token Name, with the value is not empty." [E-63]
 
-Build the inventory as a saved search in the UI. SuiteQL on `LoginAudit` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name [E-69]. `ROWNUM <= 3` worked, and the other WHERE clauses tried (user, date, SYSDATE) were rejected with "Invalid or unsupported search" [E-69].
+Build the inventory with an advanced search in the UI [E-85]. SuiteQL on `LoginAudit` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name [E-69]. `ROWNUM <= 3` worked, and the other WHERE clauses tried (user, date, SYSDATE) were rejected with "Invalid or unsupported search" [E-69].
 
 ### The recipe that was measured
 

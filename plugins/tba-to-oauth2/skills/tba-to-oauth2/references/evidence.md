@@ -266,7 +266,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 - Finding: A seven-day refresh token issued before a second authorization, and before the validity was changed to 720 hours, still refreshed successfully afterwards. Several refresh tokens can be live for one integration at once.
 
 ## E-34 Re-consent under Always Ask is one click
-- Type: Measured — NetSuite 2026.2, test account, November 2026 — p13b
+- Type: Measured — NetSuite 2026.2, test account, November 2026 — p13b-consent
 - Finding: With the consent policy set to Always Ask, second and later authorizations showed when the user had authorized the application before, with Continue and Go Back, instead of the full consent screen.
 
 ## E-35 No confidential-client refresh setting gets past a 30-day expiry
@@ -390,7 +390,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 
 ## E-84 The assertion and token request that worked
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p21a
-- Finding: An assertion with header `typ` (`JWT`), `alg` (`PS256`) and `kid` (the mapping's certificate ID), and payload `iss` (the client ID), `scope` (a JSON array, `["rest_webservices"]`), `aud` (the token endpoint URL), `iat` and `exp` (Unix seconds), returned an access token. It was POSTed form-encoded with `grant_type=client_credentials`, `client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer` and `client_assertion=<the signed JWT>` to `https://<account>.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token`, where `<account>` stands for the account ID.
+- Finding: An assertion with header `typ` (`JWT`), `alg` (`PS256`) and `kid` (the mapping's certificate ID), and payload `iss` (the client ID), `scope` (a JSON array, `["rest_webservices"]`), `aud` (the token endpoint URL), `iat` and `exp` (Unix seconds), returned an access token. It was POSTed form-encoded with `grant_type=client_credentials`, `client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer` and `client_assertion=<the signed JWT>` to `https://<account>.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token`, where `<account>` stands for the account ID. The scope-array and `client_assertion_type` details come from the probe client code used for p21a.
 
 ## Certificate rotation endpoint
 
@@ -408,7 +408,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 
 ## E-58 The add request body
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p21c, p21d, p21e, p21f
-- Finding: An empty JSON object, a raw PEM body and `{"certificate": …}` each failed with HTTP 500; the last error listed the known fields `application, validUntil, entity, validFrom, fileName, fileContent, role`. The body that worked was JSON with `fileName`, `fileContent` (the PEM text), `entity` and `role` (internal IDs). The integration record came from the path, and the response carried the new certificate ID.
+- Finding: An empty JSON object, a raw PEM body and `{"certificate": …}` each failed with HTTP 500; the last error listed the known fields `application, validUntil, entity, validFrom, fileName, fileContent, role`. The body that worked was JSON with `fileName`, `fileContent` (the PEM text), `entity` and `role` (internal IDs, sent as JSON numbers). The integration record came from the path, and the response carried the new certificate ID.
 
 ## E-59 A new certificate signs tokens straight away
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p21g
@@ -454,7 +454,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 
 ## E-69 SuiteQL on LoginAudit is too limited
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p31a, p31b
-- Finding: `SELECT * FROM LoginAudit WHERE ROWNUM <= 3` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name. The other WHERE clauses tried (on user, on date, and with SYSDATE) returned "Invalid or unsupported search". Build the TBA inventory with a saved search in the UI.
+- Finding: `SELECT * FROM LoginAudit WHERE ROWNUM <= 3` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name. The other WHERE clauses tried (on user, on date, and with SYSDATE) returned "Invalid or unsupported search". Build the TBA inventory with an advanced search in the UI [E-85].
 
 ## E-85 An ad hoc Login Audit Trail search, exported to CSV
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p31c
@@ -466,7 +466,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 
 ## E-87 N/search has no Login Audit Trail search type
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p44
-- Finding: `search.create({ type: 'loginaudittrail', … })` failed with `INVALID_RCRD_TYPE`, "The record type [LOGINAUDITTRAIL] is invalid." Listing `search.Type` for keys containing LOGIN or AUDIT returned only `GL_LINES_AUDIT_LOG`. So the Login Audit Trail can't be searched from SuiteScript this way; together with [E-69], the UI search and CSV export [E-85] is the route that worked.
+- Finding: `search.create({ type: 'loginaudittrail', … })` failed with `INVALID_RCRD_TYPE`, "The record type [LOGINAUDITTRAIL] is invalid." Listing `search.Type` for keys containing LOGIN or AUDIT returned only `GL_LINES_AUDIT_LOG`. So `N/search` has no Login Audit Trail search type. `N/query` was not tested. Together with [E-69], the UI search and CSV export [E-85] is the route that worked.
 
 ## Refresh errors
 

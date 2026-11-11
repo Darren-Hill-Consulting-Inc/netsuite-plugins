@@ -7,7 +7,7 @@ How the skill touches the code, the user's machine and the NetSuite account. Use
 | Local, no account | Reading the repo; `scan-hints.mjs`; `check-cert.mjs`; `check-assertion.mjs`; reading a Login Audit Trail CSV the user exported | Available |
 | Local Node script, with the integration's own credentials | `m2m-check.mjs`, `refresh-check.mjs`, `rotate-cert.mjs`, `verify.mjs` | Available |
 | NetSuite MCP | Nothing in v1 | Not used |
-| Script Debugger | No snippets in v1; runs ad hoc 2.1 [E-86]. The Login Audit Trail can't be searched from SuiteScript [E-87] | Available, unused |
+| Script Debugger | No snippets in v1; runs ad hoc 2.1 [E-86]. `N/search` has no Login Audit Trail search type [E-87]; SuiteQL's `LoginAudit` lacks the token columns [E-69] | Available, unused |
 
 Script paths below are under `${CLAUDE_SKILL_DIR}/scripts/`. Every script prints its usage when run with no arguments.
 
@@ -44,7 +44,7 @@ The base URL comes from the account ID: the scripts lower-case it and replace `_
 |---|---|---|
 | `m2m-check.mjs` | No | Mints a client credentials token, checks its lifetime, runs SuiteQL `SELECT 1`, lists the certificates |
 | `refresh-check.mjs` | No, for a confidential client | Refreshes once; a confidential refresh returns no new refresh token [E-32] |
-| `refresh-check.mjs --public` | Uses up the refresh chain | The new refresh token isn't saved, so the app must authorize again [E-36]. Needs `--i-understand-this-ends-the-chain` and the account ID typed at a prompt |
+| `refresh-check.mjs --public` | Uses up the refresh chain | The new refresh token isn't saved [E-36]. We infer the app must authorize again: the old token fails [E-37] and ends the chain [E-38], and a replay ends access [E-39] (inference). Needs `--i-understand-this-ends-the-chain` and the account ID typed at a prompt |
 | `rotate-cert.mjs list` | No | Lists certificates with masked IDs [E-57] |
 | `rotate-cert.mjs add` / `revoke` | **Yes** | Needs `--confirm` and the account ID typed at a prompt |
 | `verify.mjs` | No | Runs `check-cert`, `m2m-check` and, when `NS_REFRESH_TOKEN` is set, the confidential refresh check; never the public one |
@@ -67,7 +67,7 @@ v1 makes no MCP lookups. Which account data a NetSuite MCP connection can reach 
 
 ## Script Debugger
 
-The debugger runs ad hoc SuiteScript 2.1 [E-86], but v1 has no snippet that needs it. The Login Audit Trail, the main candidate, can't be searched from SuiteScript [E-87]; use the UI search and CSV export [E-85]. If you write a snippet for another read, follow the rules in [debugger-snippets.md](debugger-snippets.md).
+The debugger runs ad hoc SuiteScript 2.1 [E-86], but v1 has no snippet that needs it. The Login Audit Trail, the main candidate, has no search type in `N/search` [E-87], and SuiteQL's `LoginAudit` lacks the token columns [E-69]; use the UI search and CSV export [E-85]. If you write a snippet for another read, follow the rules in [debugger-snippets.md](debugger-snippets.md).
 
 ## When the scripts can't run here
 
