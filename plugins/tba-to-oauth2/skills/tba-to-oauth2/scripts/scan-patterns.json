@@ -4,7 +4,7 @@
     "kind": "tba-signing",
     "regex": "HMAC[-_]?SHA-?(?:256|1)\\b|SIGNATURE_HMAC|signature_?method",
     "flags": "i",
-    "note": "OAuth 1.0a signature method (HMAC-SHA256 or HMAC-SHA1). Look-alike risk: Xero, Twitter and QuickBooks use the same methods; confirm the host."
+    "note": "OAuth 1.0a signature method (HMAC-SHA256 or HMAC-SHA1). OAuth 1.0a is not NetSuite-specific; confirm the host."
   },
   {
     "id": "tba-oauth-param",
@@ -25,7 +25,7 @@
     "kind": "tba-signing",
     "regex": "realm\\W{0,4}\\d{4,8}(?:_(?:SB|RP)\\d*)?\\b",
     "flags": "i",
-    "note": "Host check: a realm with a NetSuite account-ID shape. A Xero tenant number can look the same; confirm the request host."
+    "note": "Host check: a realm with a NetSuite account-ID shape. A number in another provider's realm could look the same; confirm the request host."
   },
   {
     "id": "tba-hmac",
@@ -130,7 +130,7 @@
     "kind": "library",
     "regex": "['\"](?:netsuite-rest|netsuite-api-client|suiteql|node-suitetalk|oauth-1\\.0a)['\"]|\\bNsApiWrapper\\b|\\bNetsuiteApiClient\\b|\\bOAuth\\(\\s*\\{",
     "flags": "",
-    "note": "Node library: netsuite-rest, netsuite-api-client, suiteql, node-suitetalk or oauth-1.0a (oauth-1.0a also signs for Twitter, Xero and others)."
+    "note": "Node library: netsuite-rest, netsuite-api-client, suiteql, node-suitetalk or oauth-1.0a (oauth-1.0a is a generic OAuth 1.0a library; confirm the host)."
   },
   {
     "id": "lib-python",
