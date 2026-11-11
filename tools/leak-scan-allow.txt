@@ -1,0 +1,11 @@
+# Reviewed files whose secret-shaped strings are fake test data. Generic rules only;
+# deny-list hits can never be allowed. Format: <path> <rule>
+plugins/tba-to-oauth2/skills/tba-to-oauth2/scripts/lib/mask.test.mjs jwt
+plugins/tba-to-oauth2/skills/tba-to-oauth2/scripts/lib/mask.test.mjs pem-private-key
+plugins/tba-to-oauth2/skills/tba-to-oauth2/scripts/lib/certs.test.mjs pem-private-key
+plugins/tba-to-oauth2/skills/tba-to-oauth2/scripts/lib/jwt.test.mjs pem-private-key
+tools/leak-scan.test.mjs jwt
+tools/leak-scan.test.mjs pem-private-key
+tools/leak-scan.test.mjs account-id
+tools/leak-scan.test.mjs ipv4
+tools/leak-scan.test.mjs email
