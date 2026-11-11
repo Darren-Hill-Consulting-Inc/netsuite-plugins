@@ -2,6 +2,31 @@
 
 For the client credentials grant: the integration signs a JWT assertion with its private key, and NetSuite checks it against an uploaded certificate.
 
+## The assertion and token request
+
+What worked [E-84]:
+
+| Part | Field | Value | Oracle |
+|---|---|---|---|
+| Header | `typ` | `JWT` | [E-77] |
+| Header | `alg` | `PS256` (see the algorithm table below) | [E-42] |
+| Header | `kid` | The Certificate ID from the client credentials mapping | [E-78] |
+| Payload | `iss` | The integration's client ID | [E-79] |
+| Payload | `scope` | `["rest_webservices"]` | [E-80] |
+| Payload | `aud` | The token endpoint URL | [E-81] |
+| Payload | `iat` | Issue time, Unix seconds | [E-82] |
+| Payload | `exp` | Expiry, Unix seconds; under 60 minutes after `iat` | [E-83], [E-53] |
+
+The token endpoint was `https://<account>.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token`, and `aud` carried the same URL [E-84], [E-81]. The assertion was POSTed form-encoded [E-84]:
+
+```text
+grant_type=client_credentials
+client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+client_assertion=<the signed JWT>
+```
+
+Oracle describes `scope` as values "separated by a comma"; the measured assertion sent a JSON array, and a comma-separated string was not tested [E-80], [E-84]. Use the array form that was measured.
+
 ## Assertion lifetime
 
 **Documented limit.** Oracle: "The value must be less than 60 minutes greater than the value of the iat parameter." [E-53] Keep `exp − iat` under 60 minutes [E-53].
@@ -26,7 +51,7 @@ RS256 is not on Oracle's list, and its failure looks the same as a wrong key [E-
 
 ## The `kid`
 
-The `kid` is the certificate ID of the mapped certificate whose key signed the assertion [E-52]. An assertion signed with one mapped key but carrying another mapped certificate's `kid` returned HTTP 400 `invalid_grant` [E-52]. When you rotate, change the key and the `kid` together.
+Oracle: "The value of the kid parameter is the value of the Certificate ID generated during the mapping of the application." [E-78] It must belong to the mapped certificate whose key signed the assertion [E-52]. An assertion signed with one mapped key but carrying another mapped certificate's `kid` returned HTTP 400 `invalid_grant` [E-52]. When you rotate, change the key and the `kid` together.
 
 ## Key sizes
 

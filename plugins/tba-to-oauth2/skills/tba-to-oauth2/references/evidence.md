@@ -38,6 +38,11 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 | E-22 | A wrong `code_verifier` fails with `invalid_grant` |
 | E-23 | Verifier length is enforced only at the token step, after consent |
 | E-24 | A public client without PKCE fails only at the token step, after consent |
+| E-72 | Oracle: `plain` is not supported for `code_challenge_method`; use S256 |
+| E-73 | Oracle: `state` must be 22 to 1024 characters |
+| E-74 | Oracle: the authorization endpoint URL |
+| E-75 | Oracle: a `code_challenge` needs a `code_challenge_method` |
+| E-76 | Oracle: `code_verifier` must be 43 to 128 characters |
 | E-25 | Oracle: access token valid for 60 minutes |
 | E-26 | Oracle: refresh token valid for seven days |
 | E-27 | Oracle: public-client refresh token two days by default, one-time use |
@@ -69,6 +74,14 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 | E-52 | The assertion `kid` must match the signing key |
 | E-53 | Oracle: assertion `exp` must be less than 60 minutes after `iat` |
 | E-54 | Assertion lifetimes up to 120 minutes were accepted |
+| E-77 | Oracle: assertion header `typ` is always JWT |
+| E-78 | Oracle: assertion `kid` is the mapping's Certificate ID |
+| E-79 | Oracle: assertion `iss` is the integration's client ID |
+| E-80 | Oracle: assertion `scope` values |
+| E-81 | Oracle: assertion `aud` is the token endpoint |
+| E-82 | Oracle: assertion `iat` is the issue time in seconds |
+| E-83 | Oracle: assertion `exp` is the expiry in seconds |
+| E-84 | The assertion and token request that worked, and the token endpoint |
 | E-55 | Oracle: the rotation endpoint offers list, add and revoke |
 | E-56 | Oracle: rotation requests need a REST web services token |
 | E-57 | Rotation endpoint paths that worked |
@@ -189,6 +202,26 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 ## E-24 A public client without PKCE fails only after consent
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p07
 - Finding: A public client that sent no PKCE parameters got the consent screen and an authorization code, then the token endpoint returned HTTP 400 `{"error":"invalid_grant"}`, a generic error that doesn't name PKCE.
+
+## E-72 Oracle: `plain` is not supported
+- Type: Oracle quote — "As of 2020.2, NetSuite doesn't support a value of plain for the code_challenge_method parameter. Use S256 instead." — [OAuth 2.0 Authorization Code Grant Flow: Step One GET Request to the Authorization Endpoint](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158081944642.html), fetched 2026-11-11
+- Finding: Oracle documents the rejection measured in [E-19].
+
+## E-73 Oracle: `state` length 22 to 1024
+- Type: Oracle quote — "The length of the state parameter must be between 22 and 1024 characters." — [OAuth 2.0 Authorization Code Grant Flow: Step One GET Request to the Authorization Endpoint](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158081944642.html), fetched 2026-11-11
+- Finding: The 16-character rejection in [E-21] matches this rule.
+
+## E-74 Oracle: the authorization endpoint
+- Type: Oracle quote — "If you don't know the specific account ID, requests can be sent to https://system.netsuite.com/app/login/oauth2/authorize.nl" — [OAuth 2.0 Authorization Code Grant Flow: Step One GET Request to the Authorization Endpoint](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158081944642.html), fetched 2026-11-11
+- Finding: The same page gives the account-specific form `https://<accountID>.app.netsuite.com/app/login/oauth2/authorize.nl`; the quote above is the fallback when the account ID isn't known.
+
+## E-75 Oracle: a challenge needs a method
+- Type: Oracle quote — "However, if you configure the code_challenge parameter, you must configure the code_challenge_method parameter." — [OAuth 2.0 Authorization Code Grant Flow: Step One GET Request to the Authorization Endpoint](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158081944642.html), fetched 2026-11-11
+- Finding: Oracle documents the rejection measured in [E-20].
+
+## E-76 Oracle: verifier length 43 to 128
+- Type: Oracle quote — "The length of the code_verifier parameter must be between 43 and 128 characters." — [OAuth 2.0 Authorization Code Grant Flow: Step One GET Request to the Authorization Endpoint](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158081944642.html), fetched 2026-11-11
+- Finding: Oracle documents the range; [E-23] measured where it is enforced.
 
 ## Token lifetimes
 
@@ -323,6 +356,38 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p24
 - Tag: Observed, not guaranteed
 - Finding: Assertions with `exp − iat` of 61, 90 and 120 minutes were accepted. From 121 minutes up, the token endpoint returned HTTP 400 `{"error":"invalid_request"}`. The measured ceiling was 120 minutes inclusive, double the documented limit; keep assertions under 60 minutes [E-53].
+
+## E-77 Oracle: `typ` is always JWT
+- Type: Oracle quote — "The value of the typ parameter is always JWT" — [Request Token (JWT) Structure](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html), fetched 2026-11-11
+- Finding: The assertion header carries `typ`, `alg` [E-42] and `kid` [E-78].
+
+## E-78 Oracle: `kid` is the Certificate ID
+- Type: Oracle quote — "The value of the kid parameter is the value of the Certificate ID generated during the mapping of the application." — [Request Token (JWT) Structure](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html), fetched 2026-11-11
+- Finding: The `kid` comes from the client credentials mapping, not from the certificate file.
+
+## E-79 Oracle: `iss` is the client ID
+- Type: Oracle quote — "The value of the iss parameter is the client ID for the integration." — [Request Token (JWT) Structure](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html), fetched 2026-11-11
+- Finding: The assertion names the integration record by its client ID.
+
+## E-80 Oracle: `scope` values
+- Type: Oracle quote — "The value of the scope parameter is restlets, rest_webservices, suite_analytics, or all of them, separated by a comma." — [Request Token (JWT) Structure](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html), fetched 2026-11-11
+- Finding: Oracle describes a comma-separated value. The assertion measured in [E-84] sent `scope` as a JSON array and worked; a comma-separated string was not tested.
+
+## E-81 Oracle: `aud` is the token endpoint
+- Type: Oracle quote — "The value of the aud parameter is the NetSuite token endpoint" — [Request Token (JWT) Structure](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html), fetched 2026-11-11
+- Finding: The page gives the account-specific token endpoint URL; [E-84] has the form that worked.
+
+## E-82 Oracle: `iat` in seconds
+- Type: Oracle quote — "The value of the iat parameter represents when the token was issued. The value of the parameter is in seconds, since January 1, 1970." — [Request Token (JWT) Structure](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html), fetched 2026-11-11
+- Finding: `iat` is a Unix time in seconds, not milliseconds.
+
+## E-83 Oracle: `exp` in seconds
+- Type: Oracle quote — "The value of the exp parameter represents the number of seconds since January 1, 1970, until the token's expiration." — [Request Token (JWT) Structure](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html), fetched 2026-11-11
+- Finding: `exp` is a Unix time in seconds; its documented limit is in [E-53].
+
+## E-84 The assertion and token request that worked
+- Type: Measured — NetSuite 2026.2, test account, November 2026 — p21a
+- Finding: An assertion with header `typ` (`JWT`), `alg` (`PS256`) and `kid` (the mapping's certificate ID), and payload `iss` (the client ID), `scope` (a JSON array, `["rest_webservices"]`), `aud` (the token endpoint URL), `iat` and `exp` (Unix seconds), returned an access token. It was POSTed form-encoded with `grant_type=client_credentials`, `client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer` and `client_assertion=<the signed JWT>` to `https://<account>.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token`, where `<account>` stands for the account ID.
 
 ## Certificate rotation endpoint
 

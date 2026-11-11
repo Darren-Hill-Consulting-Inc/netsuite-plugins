@@ -3,6 +3,7 @@
   { "id": "section_0525020842", "title": "Preparing for Token-based Authentication (TBA) End of Support", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_0525020842.html" },
   { "id": "section_0525022007", "title": "What to Do to Prepare for the End of Support", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_0525022007.html" },
   { "id": "section_158081952044", "title": "OAuth 2.0 Authorization Code Grant Flow: Step Two POST Request to the Token Endpoint", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158081952044.html" },
+  { "id": "section_158081944642", "title": "OAuth 2.0 Authorization Code Grant Flow: Step One GET Request to the Authorization Endpoint", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158081944642.html" },
   { "id": "section_158082518856", "title": "Refresh Token POST Request to the Token Endpoint", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_158082518856.html" },
   { "id": "subsect_162755332391", "title": "Certificate Conditions", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/subsect_162755332391.html" },
   { "id": "section_162790605110", "title": "Request Token (JWT) Structure", "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_162790605110.html" },
