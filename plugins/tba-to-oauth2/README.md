@@ -52,6 +52,7 @@ On claude.ai or the API, the skill still answers and plans, but it gives you the
 ## Data handling
 
 - Nothing is sent to Darren Hill Consulting. The plugin has no telemetry and no servers.
+- Claude reads the files it scans, so your Claude Code provider's usual data handling applies to them, as it does to any file Claude reads.
 - The scripts talk only to the NetSuite account you name. They refuse to run unless `--account` matches `NS_ACCOUNT_ID`.
 - Credentials are read from `NS_*` environment variables and file paths you set. The skill never asks you to paste a secret, key or token into the chat.
 - Scripts never print or write secrets, private keys or tokens. Client and certificate IDs are masked as `abcd…wxyz`. The one exception: `rotate-cert add` prints the new certificate ID once, to your terminal only, because you need it as the new `kid`. The report file keeps it masked.
