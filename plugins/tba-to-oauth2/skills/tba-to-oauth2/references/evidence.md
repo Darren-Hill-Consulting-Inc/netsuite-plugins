@@ -97,6 +97,7 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 | E-67 | Some token-endpoint rejections never reach the trail |
 | E-68 | The trail records authentication, not the API outcome |
 | E-69 | SuiteQL on LoginAudit is too limited for a TBA inventory |
+| E-85 | An ad hoc Login Audit Trail search exported to CSV showed the token columns |
 | E-70 | Oracle: an expired refresh token returns `invalid_grant`; restart at Step One |
 
 ## Timeline: TBA and NLAuth
@@ -452,6 +453,10 @@ Every factual statement in this skill cites an entry here as `[E-nn]`. Each entr
 ## E-69 SuiteQL on LoginAudit is too limited
 - Type: Measured — NetSuite 2026.2, test account, November 2026 — p31a, p31b
 - Finding: `SELECT * FROM LoginAudit WHERE ROWNUM <= 3` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name. The other WHERE clauses tried (on user, on date, and with SYSDATE) returned "Invalid or unsupported search". Build the TBA inventory with a saved search in the UI.
+
+## E-85 An ad hoc Login Audit Trail search, exported to CSV
+- Type: Measured — NetSuite 2026.2, test account, November 2026 — p31c
+- Finding: An advanced Login Audit Trail search in the UI, run ad hoc without saving it, with the criterion Date within today and the result columns Detail, Request URI, Token-based Access Token Name, Token-based Application Name and User Agent added, listed the day's rows with those columns filled in, and exported to a CSV file. The OAuth 2.0 rows described in [E-64] came from that export.
 
 ## Refresh errors
 

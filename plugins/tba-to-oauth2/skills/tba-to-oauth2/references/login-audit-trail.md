@@ -8,6 +8,18 @@ Use the trail to find what still runs on TBA, to watch a migration move to OAuth
 
 Build the inventory as a saved search in the UI. SuiteQL on `LoginAudit` returned only date, detail, emailaddress, ipaddress, requesturi, role, status, user and useragent, with no token application or access token name [E-69]. `ROWNUM <= 3` worked, and the other WHERE clauses tried (user, date, SYSDATE) were rejected with "Invalid or unsupported search" [E-69].
 
+### The recipe that was measured
+
+An ad hoc search, run without saving it, listed the token columns and exported them to CSV [E-85]:
+
+1. Open the Login Audit Trail as an advanced search in the UI.
+2. Criteria: Date within today [E-85]. A wider date range was not measured; we recommend widening it to cover a full cycle of your scheduled jobs.
+3. Result columns: add Detail, Request URI, Token-based Access Token Name, Token-based Application Name and User Agent [E-85].
+4. Run it without saving, and export the results to CSV [E-85].
+5. Read the export. Oracle's criterion for TBA is a non-empty Token-based Access Token Name [E-63]; OAuth 2.0 rows had the application name and a blank access token name [E-64].
+
+If the export also has user, email or IP address columns, summarise it by application and access token name, and don't copy those columns anywhere.
+
 ## Track OAuth 2.0 use
 
 Every OAuth 2.0 row the trail recorded had the integration record's name in Token-based Application Name and a blank Token-based Access Token Name [E-64]. That covered the authorization code grant, refresh, client credentials, the rotation endpoint and SuiteQL [E-64]. Oracle's criterion lists TBA only [E-63], [E-64].
